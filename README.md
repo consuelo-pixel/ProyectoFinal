@@ -567,3 +567,6 @@ Los días son hábiles de trabajo del equipo; las fechas se asignan al iniciar e
 - Consuelo Angelica Rojas
 - Ivar Tarifa
 - Adrian Garcia
+## Enlace Jira
+- https://consuelorojas773-1795045981625.atlassian.net/jira/software/projects/PF/boards/4/backlog?atlOrigin=eyJpIjoiNTljZjdkNDkyZjUyNGZhNzhlNjdhNWZjZjc4Mzk4NTEiLCJwIjoiaiJ9
+  
