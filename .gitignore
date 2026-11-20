@@ -1,0 +1,38 @@
+## .NET & Visual Studio
+[Bb]in/
+[Oo]bj/
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+## Configuración y secretos (¡NUNCA subir a Git!)
+appsettings.Development.json
+appsettings.*.local.json
+secrets.json
+*.env
+*.env.local
+
+## Node / Frontend
+node_modules/
+dist/
+dist-ssr/
+.vite/
+*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+## Base de datos
+database/respaldos/
+*.bak
+*.dump
+
+## Sistema operativo y temporales
+.DS_Store
+Thumbs.db
+desktop.ini
+*.tmp
