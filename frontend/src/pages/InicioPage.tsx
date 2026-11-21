@@ -1,170 +1,126 @@
-import React, { useEffect, useState } from 'react';
-import { consultarSaludSistema } from '../services/saludService';
-import { SaludResponse } from '../types/salud';
+import React from 'react';
+import { Link } from 'react-router-dom';
 
 export const InicioPage: React.FC = () => {
-  const [salud, setSalud] = useState<SaludResponse | null>(null);
-  const [cargando, setCargando] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const verificarConexion = async () => {
-    setCargando(true);
-    setError(null);
-    try {
-      const data = await consultarSaludSistema();
-      setSalud(data);
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
-      } else {
-        setError('No se pudo contactar con el backend');
-      }
-      setSalud(null);
-    } finally {
-      setCargando(false);
-    }
-  };
-
-  useEffect(() => {
-    verificarConexion();
-  }, []);
+  const categorias = [
+    { nombre: 'Linos y Tapicería', desc: 'Linos italianos y rústicos de alta durabilidad', color: 'from-amber-700 to-amber-900', badge: 'Alta Demanda' },
+    { nombre: 'Sedas y Satines', desc: 'Telas elegantes, suaves y con caída brillante', color: 'from-rose-700 to-pink-900', badge: 'Elegancia' },
+    { nombre: 'Algodones Pima', desc: '100% fibra natural para confección fresca y cómoda', color: 'from-sky-700 to-blue-900', badge: 'Clásico' },
+    { nombre: 'Popelinas Estampadas', desc: 'Diseños florales, geométricos e infantiles', color: 'from-emerald-700 to-teal-900', badge: 'Variedad' },
+  ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
-      {/* Encabezado */}
-      <div className="bg-gradient-to-r from-emerald-700 to-teal-800 rounded-2xl p-8 text-white shadow-lg">
-        <span className="bg-emerald-500/30 text-emerald-200 text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wider">
-          Fase 1: Base del Sistema (Día 1 - Día 3)
-        </span>
-        <h2 className="text-3xl font-extrabold mt-3 tracking-tight">
-          Sistema de Gestión Telas Juanita
-        </h2>
-        <p className="mt-2 text-emerald-100 max-w-2xl text-sm sm:text-base">
-          Arquitectura en tres capas con React (TypeScript), ASP.NET Core (.NET C#) y PostgreSQL.
-          Control de inventario, ventas por metro, rollo y corte, clientes y seguridad con roles.
-        </p>
-      </div>
-
-      {/* Monitor de Estado en Tiempo Real */}
-      <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-gray-100 gap-4">
-          <div>
-            <h3 className="text-lg font-bold text-gray-900">Estado de Conexión del Ecosistema</h3>
-            <p className="text-sm text-gray-500">Prueba viva del endpoint /api/salud hacia PostgreSQL</p>
-          </div>
-          <button
-            onClick={verificarConexion}
-            disabled={cargando}
-            className="self-start sm:self-auto inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-lg text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50 transition"
-          >
-            {cargando ? 'Verificando...' : 'Reintentar Conexión'}
-          </button>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-          {/* Frontend */}
-          <div className="p-5 rounded-lg border border-gray-100 bg-gray-50/50">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase text-gray-500">Presentación Web</span>
-              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                En Línea
-              </span>
-            </div>
-            <p className="text-xl font-bold text-gray-800 mt-2">Frontend React</p>
-            <p className="text-xs text-gray-500 mt-1">Vite + TypeScript + Tailwind CSS</p>
-            <div className="mt-4 pt-3 border-t border-gray-200/60 text-xs text-gray-600">
-              Puerto local: <strong>5173</strong>
-            </div>
-          </div>
-
-          {/* Backend */}
-          <div className="p-5 rounded-lg border border-gray-100 bg-gray-50/50">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase text-gray-500">Lógica y API</span>
-              <span
-                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  salud
-                    ? 'bg-green-100 text-green-800'
-                    : cargando
-                    ? 'bg-yellow-100 text-yellow-800'
-                    : 'bg-red-100 text-red-800'
-                }`}
-              >
-                {salud ? 'Conectado' : cargando ? 'Consultando...' : 'Sin Conexión'}
-              </span>
-            </div>
-            <p className="text-xl font-bold text-gray-800 mt-2">API ASP.NET Core</p>
-            <p className="text-xs text-gray-500 mt-1">C# en 3 Capas (Api, Business, Data)</p>
-            <div className="mt-4 pt-3 border-t border-gray-200/60 text-xs text-gray-600">
-              Endpoint: <code>/api/salud</code>
-            </div>
-          </div>
-
-          {/* Base de Datos */}
-          <div className="p-5 rounded-lg border border-gray-100 bg-gray-50/50">
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-semibold uppercase text-gray-500">Almacenamiento</span>
-              <span
-                className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                  salud && salud.estado === 'OK'
-                    ? 'bg-green-100 text-green-800'
-                    : cargando
-                    ? 'bg-yellow-100 text-yellow-800'
-                    : 'bg-red-100 text-red-800'
-                }`}
-              >
-                {salud && salud.estado === 'OK'
-                  ? 'Base Lista'
-                  : cargando
-                  ? 'Verificando...'
-                  : 'Desconectada'}
-              </span>
-            </div>
-            <p className="text-xl font-bold text-gray-800 mt-2">PostgreSQL</p>
-            <p className="text-xs text-gray-500 mt-1">
-              {salud ? salud.baseDeDatos : 'Esquema telas (telasjuanita)'}
+    <div className="space-y-12 pb-16">
+      {/* Banner Principal Hero */}
+      <section className="relative bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 text-white py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-10">
+          <div className="max-w-2xl space-y-5">
+            <span className="bg-emerald-500/20 text-emerald-300 text-xs font-bold px-3 py-1.5 rounded-full uppercase tracking-wider border border-emerald-400/30">
+              Tienda Textil en Tarija, Bolivia
+            </span>
+            <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-tight">
+              Calidad y variedad en telas por metro, corte y rollo completo.
+            </h1>
+            <p className="text-slate-300 text-base sm:text-lg leading-relaxed">
+              En <strong>Telas Juanita</strong> abastecemos a modistas, sastres, confeccionistas y familias tarijeñas con las mejores telas nacionales e importadas. Compra al por menor o aprovecha descuentos por mayor.
             </p>
-            <div className="mt-4 pt-3 border-t border-gray-200/60 text-xs text-gray-600">
-              Roles detectados: <strong>{salud ? salud.rolesRegistrados : 0}</strong> | Usuarios: <strong>{salud ? salud.usuariosRegistrados : 0}</strong>
+            <div className="flex flex-wrap gap-4 pt-3">
+              <Link
+                to="/catalogo"
+                className="px-6 py-3.5 bg-emerald-500 hover:bg-emerald-600 text-white font-bold rounded-xl shadow-lg transition"
+              >
+                Explorar Catálogo de Telas
+              </Link>
+              <Link
+                to="/telas"
+                className="px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white font-semibold rounded-xl border border-white/20 transition"
+              >
+                Control de Existencias
+              </Link>
             </div>
           </div>
-        </div>
 
-        {/* Mensaje de error si la API no está corriendo */}
-        {error && (
-          <div className="mt-6 p-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-800 text-sm">
-            <p className="font-semibold">Aviso de comunicación:</p>
-            <p className="mt-1">
-              No se pudo conectar a <code>http://localhost:5000/api/salud</code> ({error}).
-              Para probar la conexión en vivo, ejecuta el backend con:
-            </p>
-            <code className="block mt-2 bg-amber-100/80 p-2 rounded text-xs font-mono">
-              dotnet run --project backend/TelasJuanita.Api
-            </code>
+          <div className="w-full md:w-96 bg-white/10 backdrop-blur-md border border-white/15 p-6 rounded-2xl shadow-2xl text-slate-100 space-y-4">
+            <h3 className="font-bold text-lg text-white border-b border-white/10 pb-2">
+              ✨ Ventajas de Comprar con Nosotros
+            </h3>
+            <ul className="space-y-3 text-sm">
+              <li className="flex items-start gap-2">
+                <span className="text-emerald-400 font-bold">✓</span>
+                <span><strong>Descuento por mayor:</strong> 10% de rebaja automática en compras a partir de 20 metros.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-emerald-400 font-bold">✓</span>
+                <span><strong>Corte exacto:</strong> Medición en metros con 2 decimales para que lleves justo lo que necesitas.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="text-emerald-400 font-bold">✓</span>
+                <span><strong>Crédito a clientes frecuentes:</strong> Facilidad de pago y abonos para talleres y confeccionistas.</span>
+              </li>
+            </ul>
           </div>
-        )}
-      </div>
+        </div>
+      </section>
 
-      {/* Módulos preparados para Día 2 y Día 3 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-          <span className="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded">Día 2</span>
-          <h4 className="text-lg font-bold text-gray-900 mt-3">Seguridad y Roles (RF-29, RF-30)</h4>
-          <p className="text-sm text-gray-600 mt-2">
-            Autenticación JWT, contraseñas cifradas con BCrypt, bloqueo tras 5 intentos fallidos,
-            cierre de sesión por inactividad a los 15 minutos y auditoría de solo inserción.
-          </p>
+      {/* Categorías Principales */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
+        <div>
+          <h2 className="text-2xl font-bold text-slate-900">Variedades y Líneas Textiles</h2>
+          <p className="text-sm text-slate-500">Descubre nuestros tejidos más solicitados para confección y decoración.</p>
         </div>
 
-        <div className="bg-white rounded-xl border border-gray-200 p-6 shadow-sm">
-          <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded">Día 3</span>
-          <h4 className="text-lg font-bold text-gray-900 mt-3">Clientes y Telas (RF-01, RF-02, RF-07)</h4>
-          <p className="text-sm text-gray-600 mt-2">
-            Registro y búsqueda de clientes por nombre, carnet o NIT. Registro de telas con código, tipo,
-            ancho, precio por metro y foto; deshabilitar telas en lugar de borrarlas.
-          </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {categorias.map((cat, idx) => (
+            <div
+              key={idx}
+              className={`rounded-2xl p-6 text-white bg-gradient-to-br ${cat.color} shadow-md flex flex-col justify-between h-48 hover:-translate-y-1 transition-transform`}
+            >
+              <div>
+                <span className="text-[10px] uppercase font-bold tracking-wider bg-white/20 px-2 py-0.5 rounded">
+                  {cat.badge}
+                </span>
+                <h3 className="text-xl font-bold mt-2">{cat.nombre}</h3>
+                <p className="text-xs text-white/80 mt-1">{cat.desc}</p>
+              </div>
+              <Link
+                to="/catalogo"
+                className="text-xs font-bold text-white/90 hover:text-white flex items-center gap-1 mt-4"
+              >
+                Ver en catálogo →
+              </Link>
+            </div>
+          ))}
         </div>
-      </div>
+      </section>
+
+      {/* Información de la Tienda */}
+      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="bg-white rounded-2xl border border-slate-200 p-8 shadow-sm grid grid-cols-1 md:grid-cols-3 gap-8 text-center md:text-left">
+          <div className="space-y-2">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-lg mx-auto md:mx-0">
+              📍
+            </div>
+            <h4 className="font-bold text-slate-900">Ubicación</h4>
+            <p className="text-sm text-slate-500">Zona Comercial Central, Tarija - Bolivia. Visítanos en nuestro mostrador principal.</p>
+          </div>
+
+          <div className="space-y-2">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-lg mx-auto md:mx-0">
+              ⏰
+            </div>
+            <h4 className="font-bold text-slate-900">Horarios de Atención</h4>
+            <p className="text-sm text-slate-500">Lunes a Sábado: 8:00 a 12:30 y 14:30 a 19:30. Domingo cerrado por descanso.</p>
+          </div>
+
+          <div className="space-y-2">
+            <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-bold text-lg mx-auto md:mx-0">
+              💳
+            </div>
+            <h4 className="font-bold text-slate-900">Métodos de Pago</h4>
+            <p className="text-sm text-slate-500">Efectivo en mostrador, pagos por código QR, transferencias bancarias y ventas a crédito.</p>
+          </div>
+        </div>
+      </section>
     </div>
   );
 };

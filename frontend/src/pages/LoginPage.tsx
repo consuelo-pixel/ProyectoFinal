@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { login, desbloquearUsuario } from '../services/authService';
+import { login } from '../services/authService';
 import { LoginResponse } from '../types/auth';
 
 export const LoginPage: React.FC = () => {
-  const [correo, setCorreo] = useState('admin@telasjuanita.local');
-  const [password, setPassword] = useState('CambiarEstaClave#1');
+  const [correo, setCorreo] = useState('');
+  const [password, setPassword] = useState('');
   const [cargando, setCargando] = useState(false);
   const [respuesta, setRespuesta] = useState<LoginResponse | null>(null);
 
@@ -15,137 +15,89 @@ export const LoginPage: React.FC = () => {
     try {
       const res = await login(correo, password);
       setRespuesta(res);
+      if (res.exito) {
+        // Redirección o confirmación de acceso
+      }
     } finally {
       setCargando(false);
     }
   };
 
-  const handleDesbloquear = async () => {
-    await desbloquearUsuario(correo);
-    setRespuesta({
-      exito: false,
-      mensaje: 'Intentos restablecidos a 0 y cuenta desbloqueada. Lista para probar de nuevo.',
-      intentosRestantes: 5,
-      cuentaBloqueada: false
-    });
-  };
-
   return (
-    <div className="max-w-4xl mx-auto px-4 py-8 space-y-6">
-      {/* Caja de ayuda para testing rápido */}
-      <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-4 text-xs text-indigo-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-        <div>
-          <span className="font-bold text-indigo-700 uppercase tracking-wide">🧪 Atajos para Testing de RF-29:</span>
-          <p className="mt-0.5">Credenciales válidas: <code>admin@telasjuanita.local</code> / <code>CambiarEstaClave#1</code></p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => { setCorreo('admin@telasjuanita.local'); setPassword('CambiarEstaClave#1'); }}
-            className="px-2.5 py-1.5 bg-white border border-indigo-300 rounded font-medium hover:bg-indigo-100 transition"
-          >
-            Poner Correcta
-          </button>
-          <button
-            type="button"
-            onClick={() => { setCorreo('admin@telasjuanita.local'); setPassword('clave_erronea_123'); }}
-            className="px-2.5 py-1.5 bg-white border border-indigo-300 rounded font-medium hover:bg-indigo-100 transition"
-          >
-            Poner Errónea
-          </button>
-        </div>
-      </div>
-
-      <div className="max-w-md mx-auto bg-white p-8 rounded-2xl shadow-md border border-gray-100">
+    <div className="min-h-[calc(100vh-12rem)] flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-md w-full bg-white p-8 sm:p-10 rounded-3xl shadow-xl border border-slate-100 space-y-6">
         <div className="text-center">
-          <div className="w-12 h-12 rounded-xl bg-emerald-600 mx-auto flex items-center justify-center text-white font-bold text-2xl shadow">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 mx-auto flex items-center justify-center text-white font-black text-2xl shadow-md">
             TJ
           </div>
-          <h2 className="mt-4 text-2xl font-bold text-gray-900">Iniciar Sesión</h2>
-          <p className="mt-1 text-xs text-gray-500">
-            Control de Acceso y Bloqueo a 5 Intentos (RF-29 / RNF-08)
+          <h2 className="mt-4 text-2xl font-black text-slate-900 tracking-tight">Portal del Personal</h2>
+          <p className="mt-1 text-xs text-slate-500">
+            Ingreso autorizado para ventas, almacén y administración
           </p>
         </div>
 
-        {/* Mensaje de respuesta del backend */}
         {respuesta && (
           <div
-            className={`mt-6 p-4 rounded-xl border text-sm ${
+            className={`p-4 rounded-xl border text-sm ${
               respuesta.exito
                 ? 'bg-emerald-50 border-emerald-200 text-emerald-800'
                 : respuesta.cuentaBloqueada
-                ? 'bg-red-50 border-red-300 text-red-900 font-semibold'
+                ? 'bg-rose-50 border-rose-200 text-rose-900 font-medium'
                 : 'bg-amber-50 border-amber-200 text-amber-800'
             }`}
           >
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="font-bold">{respuesta.exito ? '✅ Acceso Concedido' : respuesta.cuentaBloqueada ? '⛔ CUENTA BLOQUEADA' : '⚠️ Error de Acceso'}</p>
-                <p className="mt-1 text-xs">{respuesta.mensaje}</p>
-                {respuesta.exito && (
-                  <p className="mt-2 text-xs font-mono bg-emerald-100/70 p-1.5 rounded">
-                    Rol: {respuesta.rol} | Usuario: {respuesta.nombre}
-                  </p>
-                )}
-                {!respuesta.exito && !respuesta.cuentaBloqueada && (
-                  <p className="mt-2 text-xs font-semibold text-amber-900">
-                    Intentos disponibles antes del bloqueo: {respuesta.intentosRestantes} de 5
-                  </p>
-                )}
-              </div>
-            </div>
-
-            {/* Botón para reiniciar contador si se bloqueó */}
-            {respuesta.cuentaBloqueada && (
-              <button
-                type="button"
-                onClick={handleDesbloquear}
-                className="mt-3 w-full py-1.5 px-3 bg-red-600 hover:bg-red-700 text-white text-xs font-bold rounded shadow transition"
-              >
-                Desbloquear Cuenta para seguir probando
-              </button>
+            <p className="font-bold">{respuesta.exito ? 'Acceso Autorizado' : 'Atención'}</p>
+            <p className="mt-0.5 text-xs">{respuesta.mensaje}</p>
+            {respuesta.exito && (
+              <p className="mt-2 text-xs font-semibold text-emerald-700">
+                Bienvenida/o, {respuesta.nombre} ({respuesta.rol})
+              </p>
             )}
           </div>
         )}
 
-        <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
+        <form className="space-y-4" onSubmit={handleSubmit}>
           <div>
-            <label className="block text-sm font-medium text-gray-700">Correo Electrónico</label>
+            <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-1">
+              Correo Electrónico
+            </label>
             <input
               type="email"
               value={correo}
               onChange={(e) => setCorreo(e.target.value)}
               required
-              placeholder="admin@telasjuanita.local"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
+              placeholder="usuario@telasjuanita.local"
+              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700">Contraseña</label>
+            <div className="flex justify-between items-center mb-1">
+              <label className="block text-xs font-bold text-slate-700 uppercase tracking-wider">
+                Contraseña
+              </label>
+            </div>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
               placeholder="••••••••"
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-lg shadow-sm focus:outline-none focus:ring-emerald-500 focus:border-emerald-500 sm:text-sm"
+              className="w-full px-4 py-2.5 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition"
             />
           </div>
 
           <button
             type="submit"
             disabled={cargando}
-            className="w-full flex justify-center py-2.5 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 transition"
+            className="w-full py-3 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl shadow-md transition disabled:opacity-50 text-sm mt-2"
           >
-            {cargando ? 'Verificando...' : 'Ingresar al Sistema'}
+            {cargando ? 'Verificando...' : 'Iniciar Sesión'}
           </button>
         </form>
 
-        <div className="pt-4 mt-6 border-t border-gray-100 text-center">
-          <p className="text-xs text-gray-400">
-            Cierre de sesión automático tras 15 min de inactividad (RNF-13).
-          </p>
+        <div className="pt-4 border-t border-slate-100 text-center text-xs text-slate-400">
+          Telas Juanita • Sistema de Control y Ventas
         </div>
       </div>
     </div>
