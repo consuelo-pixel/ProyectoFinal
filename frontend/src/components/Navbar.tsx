@@ -19,32 +19,67 @@ export const Navbar: React.FC = () => {
           </div>
         </Link>
 
-        <nav className="flex items-center gap-2 sm:gap-4">
+        <nav className="flex items-center gap-1 sm:gap-2">
           <Link
             to="/"
-            className={`text-sm font-medium px-3 py-2 rounded-md transition ${
+            className={`text-xs sm:text-sm font-medium px-3 py-2 rounded-lg transition ${
               isActive('/')
-                ? 'bg-emerald-50 text-emerald-700'
+                ? 'bg-emerald-50 text-emerald-700 font-bold'
                 : 'text-gray-600 hover:text-emerald-600 hover:bg-gray-50'
             }`}
           >
-            Estado del Sistema
+            Monitor Base
           </Link>
+
+          <Link
+            to="/clientes"
+            className={`text-xs sm:text-sm font-medium px-3 py-2 rounded-lg transition ${
+              isActive('/clientes')
+                ? 'bg-emerald-50 text-emerald-700 font-bold'
+                : 'text-gray-600 hover:text-emerald-600 hover:bg-gray-50'
+            }`}
+          >
+            Clientes
+          </Link>
+
+          <Link
+            to="/telas"
+            className={`text-xs sm:text-sm font-medium px-3 py-2 rounded-lg transition ${
+              isActive('/telas')
+                ? 'bg-emerald-50 text-emerald-700 font-bold'
+                : 'text-gray-600 hover:text-emerald-600 hover:bg-gray-50'
+            }`}
+          >
+            Telas & Stock
+          </Link>
+
           <Link
             to="/catalogo"
-            className={`text-sm font-medium px-3 py-2 rounded-md transition ${
+            className={`text-xs sm:text-sm font-medium px-3 py-2 rounded-lg transition ${
               isActive('/catalogo')
-                ? 'bg-emerald-50 text-emerald-700'
+                ? 'bg-emerald-50 text-emerald-700 font-bold'
                 : 'text-gray-600 hover:text-emerald-600 hover:bg-gray-50'
             }`}
           >
             Catálogo
           </Link>
+
+          <Link
+            to="/testing"
+            className={`text-xs sm:text-sm font-bold px-3 py-2 rounded-lg transition border ${
+              isActive('/testing')
+                ? 'bg-indigo-600 text-white border-indigo-600 shadow-sm'
+                : 'bg-indigo-50 text-indigo-700 border-indigo-200 hover:bg-indigo-100'
+            }`}
+          >
+            🧪 Testing Lab
+          </Link>
+
           <Link
             to="/login"
-            className="text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition px-4 py-2 rounded-lg shadow-sm"
+            className="text-xs sm:text-sm font-medium bg-emerald-600 text-white hover:bg-emerald-700 transition px-3.5 py-2 rounded-lg shadow-sm ml-2"
           >
-            Iniciar Sesión
+            Login
           </Link>
         </nav>
       </div>

@@ -11,9 +11,19 @@ public class SaludRepository : ISaludRepository
         _context = context;
     }
 
-    public async Task<bool> PuedeConectarAsync()
+    public async Task<(bool Conecto, string? Error)> ProbarConexionAsync()
     {
-        return await _context.Database.CanConnectAsync();
+        try
+        {
+            var conn = _context.Database.GetDbConnection();
+            await conn.OpenAsync();
+            await conn.CloseAsync();
+            return (true, null);
+        }
+        catch (Exception ex)
+        {
+            return (false, ex.Message);
+        }
     }
 
     public async Task<int> ObtenerTotalRolesAsync()

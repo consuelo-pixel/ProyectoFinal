@@ -12,15 +12,24 @@ builder.Services.AddDbContext<TelasJuanitaDbContext>(options =>
     options.UseNpgsql(connectionString);
 });
 
-// Inyección de dependencias respetando las 3 capas
+// Inyección de dependencias (3 capas)
 builder.Services.AddScoped<ISaludRepository, SaludRepository>();
 builder.Services.AddScoped<ISaludService, SaludService>();
+
+builder.Services.AddScoped<IClienteRepository, ClienteRepository>();
+builder.Services.AddScoped<IClienteService, ClienteService>();
+
+builder.Services.AddScoped<ITelaRepository, TelaRepository>();
+builder.Services.AddScoped<ITelaService, TelaService>();
+
+builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 // Controladores
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
-// CORS para el Frontend (React + Vite)
+// CORS para el Frontend (React + Vite en localhost:5173)
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("FrontendPolicy", policy =>

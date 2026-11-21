@@ -14,28 +14,40 @@ public class SaludService : ISaludService
 
     public async Task<SaludResponseDto> VerificarSaludAsync()
     {
-        var conecto = await _saludRepository.PuedeConectarAsync();
+        var (conecto, errorDb) = await _saludRepository.ProbarConexionAsync();
         if (!conecto)
         {
             return new SaludResponseDto
             {
                 Estado = "ERROR",
-                Mensaje = "No se pudo establecer conexión con PostgreSQL",
+                Mensaje = $"No se pudo conectar a PostgreSQL: {errorDb}",
                 BaseDeDatos = "Desconectada"
             };
         }
 
-        var roles = await _saludRepository.ObtenerTotalRolesAsync();
-        var usuarios = await _saludRepository.ObtenerTotalUsuariosAsync();
-
-        return new SaludResponseDto
+        try
         {
-            Estado = "OK",
-            Mensaje = "API y PostgreSQL conectados correctamente",
-            BaseDeDatos = "PostgreSQL (esquema telas)",
-            RolesRegistrados = roles,
-            UsuariosRegistrados = usuarios,
-            FechaUtc = DateTime.UtcNow
-        };
+            var roles = await _saludRepository.ObtenerTotalRolesAsync();
+            var usuarios = await _saludRepository.ObtenerTotalUsuariosAsync();
+
+            return new SaludResponseDto
+            {
+                Estado = "OK",
+                Mensaje = "API y PostgreSQL conectados correctamente",
+                BaseDeDatos = "PostgreSQL (esquema telas)",
+                RolesRegistrados = roles,
+                UsuariosRegistrados = usuarios,
+                FechaUtc = DateTime.UtcNow
+            };
+        }
+        catch (Exception ex)
+        {
+            return new SaludResponseDto
+            {
+                Estado = "ERROR",
+                Mensaje = $"Conectó a la base de datos pero falló al consultar tablas: {ex.Message}",
+                BaseDeDatos = "Conectada (sin tablas o sin permisos)"
+            };
+        }
     }
 }
