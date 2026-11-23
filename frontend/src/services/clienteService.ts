@@ -5,9 +5,8 @@ import { Cliente, CrearClienteData } from '../types/cliente';
 let clientesMock: Cliente[] = [
   { idCliente: 1, nombre: 'María Elena Morales', carnet: '5849302', nit: '5849302018', telefono: '71894022', direccion: 'Barrio San Roque #450, Tarija', limiteCredito: 1500, estado: 'ACTIVO' },
   { idCliente: 2, nombre: 'Carlos Andrés Benítez', carnet: '4930291', nit: '4930291012', telefono: '68710293', direccion: 'Av. Las Panosas #120, Tarija', limiteCredito: 3000, estado: 'ACTIVO' },
-  { idCliente: 3, nombre: 'Lucía Fernández Ramos', carnet: '7291038', nit: null, telefono: '73491022', direccion: 'Mercado Central Puesto #14', limiteCredito: 800, estado: 'ACTIVO' }
-];
-
+    { idCliente: 3, nombre: 'Lucía Fernández Ramos', carnet: '7291038', nit: undefined, telefono: '73491022', direccion: 'Mercado Central Puesto #14', limiteCredito: 800, estado: 'ACTIVO' }
+]
 export async function listarClientes(buscar?: string): Promise<Cliente[]> {
   try {
     const query = buscar ? `?buscar=${encodeURIComponent(buscar)}` : '';
