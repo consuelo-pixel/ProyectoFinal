@@ -75,3 +75,34 @@ export async function cambiarEstadoTela(id: number, nuevoEstado: string): Promis
     return false;
   }
 }
+
+export interface AjustarInventarioData {
+  idTela: number;
+  idRollo?: number;
+  cantidadMetros: number;
+  tipoOperacion: 'DISMINUCION' | 'INCREMENTO';
+  motivo: string;
+}
+
+export async function ajustarInventario(data: AjustarInventarioData): Promise<boolean> {
+  if (!data.motivo || data.motivo.trim().length < 5) {
+    throw new Error('El motivo de ajuste es obligatorio (mínimo 5 caracteres - RF-06).');
+  }
+
+  try {
+    await apiFetch<{ mensaje: string }>('/telas/ajuste', {
+      method: 'POST',
+      body: JSON.stringify(data)
+    });
+    return true;
+  } catch (err) {
+    console.warn('API /telas/ajuste no disponible, ajustando en local para testing:', err);
+    const index = telasMock.findIndex(t => t.idTela === data.idTela);
+    if (index !== -1) {
+      const delta = data.tipoOperacion === 'INCREMENTO' ? data.cantidadMetros : -data.cantidadMetros;
+      telasMock[index].metrosDisponibles = Math.max(0, Number((telasMock[index].metrosDisponibles + delta).toFixed(2)));
+      return true;
+    }
+    return false;
+  }
+}

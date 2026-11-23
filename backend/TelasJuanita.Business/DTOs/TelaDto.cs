@@ -46,3 +46,22 @@ public class CrearTelaDto
     [StringLength(300)]
     public string? UrlFoto { get; set; }
 }
+
+public class AjustarInventarioDto
+{
+    [Required]
+    public int IdTela { get; set; }
+
+    public int? IdRollo { get; set; }
+
+    [Required]
+    [Range(0.1, 10000.0, ErrorMessage = "La cantidad de metros debe ser mayor a 0")]
+    public decimal CantidadMetros { get; set; }
+
+    [Required]
+    public string TipoOperacion { get; set; } = "DISMINUCION"; // DISMINUCION o INCREMENTO
+
+    [Required(ErrorMessage = "El motivo de ajuste es obligatorio (RF-06)")]
+    [MinLength(5, ErrorMessage = "El motivo debe tener al menos 5 caracteres")]
+    public string Motivo { get; set; } = string.Empty;
+}

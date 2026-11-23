@@ -14,6 +14,7 @@ import { AlmacenPage } from './pages/AlmacenPage';
 import { MisPedidosPage } from './pages/MisPedidosPage';
 import { CajaPage } from './pages/CajaPage';
 import { CobranzasPage } from './pages/CobranzasPage';
+import { ReportesPage } from './pages/ReportesPage';
 
 export const App: React.FC = () => {
   return (
@@ -50,6 +51,14 @@ export const App: React.FC = () => {
                 element={
                   <RutaProtegida rolesPermitidos={['Dueña', 'Vendedor']}>
                     <CajaPage />
+                  </RutaProtegida>
+                }
+              />
+              <Route
+                path="/reportes"
+                element={
+                  <RutaProtegida rolesPermitidos={['Dueña', 'Vendedor']}>
+                    <ReportesPage />
                   </RutaProtegida>
                 }
               />

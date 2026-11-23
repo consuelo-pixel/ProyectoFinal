@@ -73,4 +73,44 @@ public class TelaRepository : ITelaRepository
             t.Codigo.ToLower() == codigo.Trim().ToLower() &&
             (!idExcluir.HasValue || t.IdTela != idExcluir.Value));
     }
+
+    public async Task<bool> RegistrarAjusteInventarioAsync(MovimientoInventario movimiento, decimal deltaMetros)
+    {
+        using var tx = await _context.Database.BeginTransactionAsync();
+        try
+        {
+            _context.MovimientosInventario.Add(movimiento);
+
+            if (movimiento.IdRollo.HasValue)
+            {
+                var rollo = await _context.Rollos.FindAsync(movimiento.IdRollo.Value);
+                if (rollo != null)
+                {
+                    rollo.MetrosDisponibles = Math.Max(0, rollo.MetrosDisponibles + deltaMetros);
+                }
+            }
+            else
+            {
+                var rollo = await _context.Rollos
+                    .Where(r => r.IdTela == movimiento.IdTela)
+                    .OrderByDescending(r => r.FechaIngreso)
+                    .FirstOrDefaultAsync();
+
+                if (rollo != null)
+                {
+                    rollo.MetrosDisponibles = Math.Max(0, rollo.MetrosDisponibles + deltaMetros);
+                    movimiento.IdRollo = rollo.IdRollo;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+            await tx.CommitAsync();
+            return true;
+        }
+        catch
+        {
+            await tx.RollbackAsync();
+            throw;
+        }
+    }
 }

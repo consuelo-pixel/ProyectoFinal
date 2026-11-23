@@ -10,4 +10,5 @@ public interface ITelaRepository
     Task<Tela> CrearAsync(Tela tela);
     Task<bool> CambiarEstadoAsync(int id, string nuevoEstado);
     Task<bool> ExisteCodigoAsync(string codigo, int? idExcluir = null);
+    Task<bool> RegistrarAjusteInventarioAsync(MovimientoInventario movimiento, decimal deltaMetros);
 }

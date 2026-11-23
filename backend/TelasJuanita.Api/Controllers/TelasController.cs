@@ -61,6 +61,21 @@ public class TelasController : ControllerBase
 
         return Ok(new { mensaje = $"Estado de la tela actualizado a '{request.Estado}'" });
     }
+
+    [HttpPost("ajuste")]
+    public async Task<IActionResult> AjustarInventario([FromBody] AjustarInventarioDto dto)
+    {
+        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        var idUsuario = Guid.TryParse(userIdClaim, out var guid) ? guid : Guid.Parse("00000000-0000-0000-0000-000000000001");
+
+        var (exito, error) = await _telaService.AjustarInventarioAsync(dto, idUsuario);
+        if (!exito)
+        {
+            return BadRequest(new { mensaje = error });
+        }
+
+        return Ok(new { mensaje = "Ajuste de inventario registrado con éxito." });
+    }
 }
 
 public class CambiarEstadoRequest

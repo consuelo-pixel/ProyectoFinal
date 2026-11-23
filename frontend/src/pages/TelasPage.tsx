@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { listarTelas, registrarTela, cambiarEstadoTela } from '../services/telaService';
+import { listarTelas, registrarTela, cambiarEstadoTela, ajustarInventario } from '../services/telaService';
 import { Tela, CrearTelaData } from '../types/tela';
 
 export const TelasPage: React.FC = () => {
@@ -10,6 +10,13 @@ export const TelasPage: React.FC = () => {
   const [mostrarModal, setMostrarModal] = useState(false);
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [mensajeError, setMensajeError] = useState<string | null>(null);
+
+  // Modal de Ajuste de Inventario (RF-06)
+  const [telaAjuste, setTelaAjuste] = useState<Tela | null>(null);
+  const [metrosAjuste, setMetrosAjuste] = useState<number>(1.0);
+  const [tipoOperacionAjuste, setTipoOperacionAjuste] = useState<'DISMINUCION' | 'INCREMENTO'>('DISMINUCION');
+  const [motivoAjuste, setMotivoAjuste] = useState<string>('');
+  const [guardandoAjuste, setGuardandoAjuste] = useState<boolean>(false);
 
   // Formulario nueva tela
   const [codigo, setCodigo] = useState('');
@@ -71,6 +78,35 @@ export const TelasPage: React.FC = () => {
     if (ok) {
       setMensaje(`La tela '${tela.nombre}' ahora figura como ${nuevoEstado}.`);
       cargar();
+    }
+  };
+
+  const handleGuardarAjuste = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!telaAjuste) return;
+
+    if (!motivoAjuste.trim()) {
+      alert('El motivo de ajuste es obligatorio (RF-06).');
+      return;
+    }
+
+    setGuardandoAjuste(true);
+    try {
+      await ajustarInventario({
+        idTela: telaAjuste.idTela,
+        cantidadMetros: Number(metrosAjuste),
+        tipoOperacion: tipoOperacionAjuste,
+        motivo: motivoAjuste.trim()
+      });
+
+      setMensaje(`Ajuste de inventario aplicado a '${telaAjuste.nombre}'. Metros actualizados.`);
+      setTelaAjuste(null);
+      setMotivoAjuste('');
+      cargar();
+    } catch (err: any) {
+      alert(err.message || 'Error al aplicar el ajuste de existencias.');
+    } finally {
+      setGuardandoAjuste(false);
     }
   };
 
@@ -203,7 +239,19 @@ export const TelasPage: React.FC = () => {
                           {t.estado}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-6 py-4 text-right space-x-2">
+                        <button
+                          onClick={() => {
+                            setTelaAjuste(t);
+                            setMetrosAjuste(1.0);
+                            setTipoOperacionAjuste('DISMINUCION');
+                            setMotivoAjuste('');
+                          }}
+                          className="text-xs font-bold px-2.5 py-1.5 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-900 border border-amber-200 transition"
+                          title="Ajuste de inventario con motivo obligatorio (RF-06)"
+                        >
+                          ⚖️ Ajustar
+                        </button>
                         <button
                           onClick={() => handleToggleEstado(t)}
                           className={`text-xs font-bold px-3 py-1.5 rounded-lg transition border ${
@@ -344,6 +392,120 @@ export const TelasPage: React.FC = () => {
                   className="px-5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition"
                 >
                   Guardar Tela
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de Ajuste de Inventario con Motivo Obligatorio (RF-06) */}
+      {telaAjuste && (
+        <div className="fixed inset-0 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 shadow-2xl space-y-5 animate-in fade-in zoom-in-95 duration-150 border border-slate-100">
+            <div className="flex justify-between items-start border-b border-slate-100 pb-3">
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
+                  Control de Almacén • RF-06
+                </span>
+                <h3 className="text-xl font-black text-slate-900 mt-1">Ajustar Inventario</h3>
+                <p className="text-xs text-slate-500">{telaAjuste.nombre} ({telaAjuste.codigo})</p>
+              </div>
+              <button onClick={() => setTelaAjuste(null)} className="text-slate-400 hover:text-slate-600 text-2xl font-bold">×</button>
+            </div>
+
+            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 text-xs text-slate-600 flex justify-between items-center">
+              <span>Metros actuales en sistema:</span>
+              <span className="font-extrabold text-slate-900 text-sm">{telaAjuste.metrosDisponibles} m</span>
+            </div>
+
+            <form onSubmit={handleGuardarAjuste} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Tipo de Ajuste
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setTipoOperacionAjuste('DISMINUCION')}
+                    className={`py-2 px-3 rounded-xl font-bold border transition text-center ${
+                      tipoOperacionAjuste === 'DISMINUCION'
+                        ? 'bg-rose-50 border-rose-300 text-rose-800 shadow-sm'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    📉 Disminución (Merma / Daño)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTipoOperacionAjuste('INCREMENTO')}
+                    className={`py-2 px-3 rounded-xl font-bold border transition text-center ${
+                      tipoOperacionAjuste === 'INCREMENTO'
+                        ? 'bg-emerald-50 border-emerald-300 text-emerald-800 shadow-sm'
+                        : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
+                    }`}
+                  >
+                    📈 Incremento (Sobrante)
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Cantidad de Metros a Ajustar *
+                </label>
+                <input
+                  type="number"
+                  step="0.1"
+                  min="0.1"
+                  required
+                  value={metrosAjuste}
+                  onChange={(e) => setMetrosAjuste(parseFloat(e.target.value) || 0)}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 font-bold text-base text-slate-900 focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-slate-700 uppercase tracking-wider mb-1">
+                  Motivo del Ajuste (Obligatorio por Norma RF-06) *
+                </label>
+                <textarea
+                  required
+                  rows={3}
+                  value={motivoAjuste}
+                  onChange={(e) => setMotivoAjuste(e.target.value)}
+                  placeholder="Ej. Merma por corte con mancha de fábrica al inicio de pieza. Retazo no comercializable."
+                  className="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-emerald-500"
+                />
+                <div className="flex flex-wrap gap-1 mt-1.5">
+                  <span className="text-[10px] text-slate-400">Comunes:</span>
+                  {['Mancha de tinte', 'Corte defectuoso', 'Retazo final', 'Diferencia de conteo'].map((preset) => (
+                    <button
+                      key={preset}
+                      type="button"
+                      onClick={() => setMotivoAjuste(preset)}
+                      className="text-[10px] bg-slate-100 hover:bg-slate-200 text-slate-700 px-2 py-0.5 rounded"
+                    >
+                      {preset}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="pt-2 flex justify-end gap-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setTelaAjuste(null)}
+                  className="px-4 py-2.5 border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 font-bold"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={guardandoAjuste}
+                  className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl font-bold shadow-md transition disabled:opacity-50"
+                >
+                  {guardandoAjuste ? 'Guardando Ajuste...' : 'Confirmar Ajuste'}
                 </button>
               </div>
             </form>

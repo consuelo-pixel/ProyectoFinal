@@ -106,4 +106,48 @@ public class TelaService : ITelaService
 
         return (true, null);
     }
+
+    public async Task<(bool Exito, string? Error)> AjustarInventarioAsync(AjustarInventarioDto dto, Guid idUsuario)
+    {
+        // RF-06: Motivo obligatorio para ajustes de inventario
+        if (string.IsNullOrWhiteSpace(dto.Motivo))
+        {
+            return (false, "El motivo del ajuste de inventario es estrictamente obligatorio (RF-06).");
+        }
+
+        if (dto.CantidadMetros <= 0)
+        {
+            return (false, "La cantidad de metros debe ser mayor a 0.");
+        }
+
+        try
+        {
+            var tela = await _telaRepo.ObtenerPorIdAsync(dto.IdTela);
+            if (tela == null)
+            {
+                return (false, "No se encontró la tela especificada.");
+            }
+
+            var esIncremento = dto.TipoOperacion.ToUpper() == "INCREMENTO";
+            var deltaMetros = esIncremento ? dto.CantidadMetros : -dto.CantidadMetros;
+
+            var movimiento = new MovimientoInventario
+            {
+                Fecha = DateTime.UtcNow,
+                Tipo = "AJUSTE",
+                CantidadMetros = dto.CantidadMetros,
+                Motivo = dto.Motivo.Trim(),
+                IdTela = dto.IdTela,
+                IdRollo = dto.IdRollo,
+                IdUsuario = idUsuario
+            };
+
+            await _telaRepo.RegistrarAjusteInventarioAsync(movimiento, deltaMetros);
+            return (true, null);
+        }
+        catch (Exception ex)
+        {
+            return (false, $"Error al registrar ajuste de inventario: {ex.Message}");
+        }
+    }
 }

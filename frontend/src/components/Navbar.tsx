@@ -121,6 +121,18 @@ export const Navbar: React.FC = () => {
             </Link>
           )}
 
+          {/* 3.3 Reportes y Rotación: Dueña y Vendedor */}
+          {(!usuario || usuario.rol === 'Dueña' || usuario.rol === 'Vendedor') && (
+            <Link
+              to="/reportes"
+              className={`text-xs sm:text-sm font-semibold px-3 py-2 rounded-lg transition ${
+                isActive('/reportes') ? 'bg-emerald-50 text-emerald-800' : 'text-slate-600 hover:text-emerald-700 hover:bg-slate-50'
+              }`}
+            >
+              Reportes
+            </Link>
+          )}
+
           {/* 4. Clientes: Dueña y Vendedor */}
           {(!usuario || usuario.rol === 'Dueña' || usuario.rol === 'Vendedor') && (
             <Link

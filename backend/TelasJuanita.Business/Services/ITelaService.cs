@@ -8,4 +8,5 @@ public interface ITelaService
     Task<TelaDto?> ObtenerPorIdAsync(int id);
     Task<(bool Exito, string? Error, TelaDto? Tela)> RegistrarTelaAsync(CrearTelaDto dto);
     Task<(bool Exito, string? Error)> CambiarEstadoAsync(int id, string nuevoEstado);
+    Task<(bool Exito, string? Error)> AjustarInventarioAsync(AjustarInventarioDto dto, Guid idUsuario);
 }
