@@ -12,6 +12,8 @@ import { VentasPage } from './pages/VentasPage';
 import { AdminPage } from './pages/AdminPage';
 import { AlmacenPage } from './pages/AlmacenPage';
 import { MisPedidosPage } from './pages/MisPedidosPage';
+import { CajaPage } from './pages/CajaPage';
+import { CobranzasPage } from './pages/CobranzasPage';
 
 export const App: React.FC = () => {
   return (
@@ -32,6 +34,22 @@ export const App: React.FC = () => {
                 element={
                   <RutaProtegida rolesPermitidos={['Dueña', 'Vendedor']}>
                     <VentasPage />
+                  </RutaProtegida>
+                }
+              />
+              <Route
+                path="/cobranzas"
+                element={
+                  <RutaProtegida rolesPermitidos={['Dueña', 'Vendedor']}>
+                    <CobranzasPage />
+                  </RutaProtegida>
+                }
+              />
+              <Route
+                path="/caja"
+                element={
+                  <RutaProtegida rolesPermitidos={['Dueña', 'Vendedor']}>
+                    <CajaPage />
                   </RutaProtegida>
                 }
               />

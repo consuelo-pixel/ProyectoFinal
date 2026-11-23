@@ -25,6 +25,12 @@ builder.Services.AddScoped<ITelaService, TelaService>();
 builder.Services.AddScoped<IUsuarioRepository, UsuarioRepository>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
+builder.Services.AddScoped<ICajaRepository, CajaRepository>();
+builder.Services.AddScoped<ICajaService, CajaService>();
+
+builder.Services.AddScoped<ICobranzaRepository, CobranzaRepository>();
+builder.Services.AddScoped<ICobranzaService, CobranzaService>();
+
 // Controladores
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();

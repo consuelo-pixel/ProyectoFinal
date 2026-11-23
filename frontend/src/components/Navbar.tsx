@@ -97,6 +97,30 @@ export const Navbar: React.FC = () => {
             </Link>
           )}
 
+          {/* 3.1 Cobranzas y Créditos: Dueña y Vendedor */}
+          {(!usuario || usuario.rol === 'Dueña' || usuario.rol === 'Vendedor') && (
+            <Link
+              to="/cobranzas"
+              className={`text-xs sm:text-sm font-semibold px-3 py-2 rounded-lg transition ${
+                isActive('/cobranzas') ? 'bg-emerald-50 text-emerald-800' : 'text-slate-600 hover:text-emerald-700 hover:bg-slate-50'
+              }`}
+            >
+              Cobranzas
+            </Link>
+          )}
+
+          {/* 3.2 Cierre de Caja: Dueña y Vendedor */}
+          {(!usuario || usuario.rol === 'Dueña' || usuario.rol === 'Vendedor') && (
+            <Link
+              to="/caja"
+              className={`text-xs sm:text-sm font-semibold px-3 py-2 rounded-lg transition ${
+                isActive('/caja') ? 'bg-emerald-50 text-emerald-800' : 'text-slate-600 hover:text-emerald-700 hover:bg-slate-50'
+              }`}
+            >
+              Caja
+            </Link>
+          )}
+
           {/* 4. Clientes: Dueña y Vendedor */}
           {(!usuario || usuario.rol === 'Dueña' || usuario.rol === 'Vendedor') && (
             <Link
