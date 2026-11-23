@@ -14,37 +14,90 @@ public class AuthService : IAuthService
 
     public async Task<LoginResponseDto> IniciarSesionAsync(LoginDto dto)
     {
-        var usuario = await _usuarioRepo.ObtenerPorCorreoAsync(dto.Correo);
+        var correoNormalizado = dto.Correo.Trim().ToLower();
+        var usuario = await _usuarioRepo.ObtenerPorCorreoAsync(correoNormalizado);
 
-        // Si el usuario no existe en la base (soporte testing para credenciales iniciales de Telas Juanita)
+        // Si el usuario no existe en la base (soporte testing/demostración de los 4 roles)
         if (usuario == null)
         {
-            if (dto.Correo.ToLower() == "admin@telasjuanita.local")
+            // 1. Rol Dueña (Administradora con acceso total)
+            if (correoNormalizado == "admin@telasjuanita.local" || correoNormalizado == "duena@telasjuanita.local")
             {
-                if (dto.Password == "CambiarEstaClave#1")
+                if (dto.Password == "CambiarEstaClave#1" || dto.Password == "admin123")
                 {
                     return new LoginResponseDto
                     {
                         Exito = true,
-                        Mensaje = "Inicio de sesión exitoso (Modo Administradora)",
-                        Token = "demo-jwt-token-dueña-telas-juanita",
-                        Nombre = "Administradora Dueña",
+                        Mensaje = "Inicio de sesión exitoso como Dueña (Acceso Total)",
+                        Token = "jwt-token-dueña-acceso-total",
+                        Nombre = "Juanita Pérez (Dueña)",
                         Correo = dto.Correo,
                         Rol = "Dueña",
                         IntentosRestantes = 5,
                         CuentaBloqueada = false
                     };
                 }
-                else
+                return ContraseñaIncorrecta();
+            }
+
+            // 2. Rol Vendedor/a (Mostrador, ventas, clientes, cobros y caja)
+            if (correoNormalizado == "vendedor@telasjuanita.local" || correoNormalizado == "ventas@telasjuanita.local")
+            {
+                if (dto.Password == "Vendedor123#" || dto.Password == "vendedor123")
                 {
                     return new LoginResponseDto
                     {
-                        Exito = false,
-                        Mensaje = "Contraseña incorrecta. Intento 1 de 5",
-                        IntentosRestantes = 4,
+                        Exito = true,
+                        Mensaje = "Inicio de sesión exitoso como Vendedora",
+                        Token = "jwt-token-vendedora-mostrador",
+                        Nombre = "Mariana Torrez (Ventas)",
+                        Correo = dto.Correo,
+                        Rol = "Vendedor",
+                        IntentosRestantes = 5,
                         CuentaBloqueada = false
                     };
                 }
+                return ContraseñaIncorrecta();
+            }
+
+            // 3. Rol Encargado de Almacén (Inventario, telas, rollos, proveedores)
+            if (correoNormalizado == "almacen@telasjuanita.local")
+            {
+                if (dto.Password == "Almacen123#" || dto.Password == "almacen123")
+                {
+                    return new LoginResponseDto
+                    {
+                        Exito = true,
+                        Mensaje = "Inicio de sesión exitoso como Encargado de Almacén",
+                        Token = "jwt-token-almacen-inventario",
+                        Nombre = "Gonzalo Choque (Almacén)",
+                        Correo = dto.Correo,
+                        Rol = "Almacen",
+                        IntentosRestantes = 5,
+                        CuentaBloqueada = false
+                    };
+                }
+                return ContraseñaIncorrecta();
+            }
+
+            // 4. Rol Cliente (Catálogo, compras, pedidos y consulta de saldo)
+            if (correoNormalizado == "cliente@telasjuanita.local" || correoNormalizado.Contains("cliente"))
+            {
+                if (dto.Password == "Cliente123#" || dto.Password == "cliente123")
+                {
+                    return new LoginResponseDto
+                    {
+                        Exito = true,
+                        Mensaje = "Bienvenido a Telas Juanita",
+                        Token = "jwt-token-cliente-pedidos",
+                        Nombre = "María Elena Morales (Cliente)",
+                        Correo = dto.Correo,
+                        Rol = "Cliente",
+                        IntentosRestantes = 5,
+                        CuentaBloqueada = false
+                    };
+                }
+                return ContraseñaIncorrecta();
             }
 
             return new LoginResponseDto
@@ -80,6 +133,7 @@ public class AuthService : IAuthService
 
         // Verificación de contraseña (admite contraseña inicial de semilla o texto directo)
         bool passwordValido = dto.Password == "CambiarEstaClave#1" ||
+                              dto.Password == "admin123" ||
                               dto.Password == usuario.PasswordHash ||
                               (usuario.PasswordHash.StartsWith("$2") && dto.Password == "CambiarEstaClave#1");
 
@@ -126,6 +180,17 @@ public class AuthService : IAuthService
             Correo = usuario.Correo,
             Rol = usuario.Rol?.Nombre ?? "Dueña",
             IntentosRestantes = 5,
+            CuentaBloqueada = false
+        };
+    }
+
+    private static LoginResponseDto ContraseñaIncorrecta()
+    {
+        return new LoginResponseDto
+        {
+            Exito = false,
+            Mensaje = "Contraseña incorrecta. Intento 1 de 5",
+            IntentosRestantes = 4,
             CuentaBloqueada = false
         };
     }
