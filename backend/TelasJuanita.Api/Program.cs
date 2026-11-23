@@ -31,6 +31,9 @@ builder.Services.AddScoped<ICajaService, CajaService>();
 builder.Services.AddScoped<ICobranzaRepository, CobranzaRepository>();
 builder.Services.AddScoped<ICobranzaService, CobranzaService>();
 
+builder.Services.AddScoped<IVentaRepository, VentaRepository>();
+builder.Services.AddScoped<IVentaService, VentaService>();
+
 // Controladores
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
