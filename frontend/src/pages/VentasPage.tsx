@@ -61,8 +61,9 @@ export const VentasPage: React.FC = () => {
       }
       setClientes(clientesData);
       setVentasRecientes(ventasData);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error al cargar datos de ventas:', err);
+      alert(err.message || 'No se pudieron cargar los datos de ventas.');
     }
   };
 

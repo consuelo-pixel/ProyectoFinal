@@ -22,41 +22,57 @@ public class VentaRepository : IVentaRepository
 
             foreach (var det in detalles)
             {
-                det.IdVenta = venta.IdVenta;
-                _context.DetallesVenta.Add(det);
+                Rollo? rollo;
 
-                // Disminuir existencias del rollo si se especificó
                 if (det.IdRollo.HasValue)
                 {
-                    var rollo = await _context.Rollos.FindAsync(det.IdRollo.Value);
-                    if (rollo != null)
+                    // Se eligió un rollo: tiene que ser de esa tela
+                    rollo = await _context.Rollos
+                        .FirstOrDefaultAsync(r => r.IdRollo == det.IdRollo.Value && r.IdTela == det.IdTela);
+
+                    if (rollo == null)
                     {
-                        rollo.MetrosDisponibles = Math.Max(0, rollo.MetrosDisponibles - det.CantidadMetros);
+                        throw new InvalidOperationException("El rollo seleccionado no existe o no pertenece a esa tela.");
                     }
                 }
                 else
                 {
-                    // Si no se especificó rollo particular, descontar del primer rollo disponible de la tela
-                    var rolloDisponible = await _context.Rollos
-                        .Where(r => r.IdTela == det.IdTela && r.MetrosDisponibles > 0)
+                    // No se eligió rollo: buscamos el más antiguo que tenga suficientes metros
+                    rollo = await _context.Rollos
+                        .Where(r => r.IdTela == det.IdTela && r.MetrosDisponibles >= det.CantidadMetros)
                         .OrderBy(r => r.FechaIngreso)
                         .FirstOrDefaultAsync();
 
-                    if (rolloDisponible != null)
+                    if (rollo == null)
                     {
-                        rolloDisponible.MetrosDisponibles = Math.Max(0, rolloDisponible.MetrosDisponibles - det.CantidadMetros);
-                        det.IdRollo = rolloDisponible.IdRollo;
+                        throw new InvalidOperationException(
+                            $"No hay ningún rollo con {det.CantidadMetros} metros disponibles para la tela con ID {det.IdTela}.");
                     }
                 }
+
+                // Control de stock: no se puede vender más de lo que hay en el rollo
+                if (rollo.MetrosDisponibles < det.CantidadMetros)
+                {
+                    throw new InvalidOperationException(
+                        $"El rollo {rollo.IdRollo} solo tiene {rollo.MetrosDisponibles} metros disponibles.");
+                }
+
+                rollo.MetrosDisponibles -= det.CantidadMetros;
+                det.IdRollo = rollo.IdRollo;
+                det.IdVenta = venta.IdVenta;
+                _context.DetallesVenta.Add(det);
+
+                // Guardamos en cada vuelta para que la siguiente línea vea el stock actualizado
+                await _context.SaveChangesAsync();
             }
 
             if (pago != null)
             {
                 pago.IdVenta = venta.IdVenta;
                 _context.Pagos.Add(pago);
+                await _context.SaveChangesAsync();
             }
 
-            await _context.SaveChangesAsync();
             await tx.CommitAsync();
 
             return await ObtenerVentaConDetallesAsync(venta.IdVenta) ?? venta;
@@ -107,21 +123,38 @@ public class VentaRepository : IVentaRepository
                 return false;
             }
 
+            // Si ya hay abonos, anular dejaría plata sin devolver: mejor no permitirlo
+            if (venta.EsCredito)
+            {
+                var tieneAbonos = await _context.Abonos.AnyAsync(a => a.IdVenta == idVenta);
+                if (tieneAbonos)
+                {
+                    throw new InvalidOperationException("No se puede anular una venta a crédito que ya tiene abonos registrados.");
+                }
+            }
+
             venta.Estado = "ANULADA";
             venta.MotivoAnulacion = motivo;
             venta.FechaAnulacion = DateTime.UtcNow;
             venta.IdUsuarioAnulacion = idUsuarioAnulacion;
+            venta.SaldoPendiente = 0m;
 
-            // Reponer metros a los rollos (RF-12/RF-13)
+            // Devolver los metros a los rollos (menos lo que ya se había devuelto antes)
             foreach (var det in venta.Detalles)
             {
-                if (det.IdRollo.HasValue)
+                if (!det.IdRollo.HasValue)
                 {
-                    var rollo = await _context.Rollos.FindAsync(det.IdRollo.Value);
-                    if (rollo != null)
-                    {
-                        rollo.MetrosDisponibles += det.CantidadMetros;
-                    }
+                    continue;
+                }
+
+                var yaDevuelto = await _context.Devoluciones
+                    .Where(d => d.IdDetalleVenta == det.IdDetalleVenta)
+                    .SumAsync(d => d.CantidadMetros);
+
+                var rollo = await _context.Rollos.FindAsync(det.IdRollo.Value);
+                if (rollo != null)
+                {
+                    rollo.MetrosDisponibles += det.CantidadMetros - yaDevuelto;
                 }
             }
 
@@ -141,10 +174,35 @@ public class VentaRepository : IVentaRepository
         using var tx = await _context.Database.BeginTransactionAsync();
         try
         {
+            var detalle = await _context.DetallesVenta
+                .Include(d => d.Venta)
+                .FirstOrDefaultAsync(d => d.IdDetalleVenta == devolucion.IdDetalleVenta);
+
+            if (detalle == null)
+            {
+                throw new InvalidOperationException("No se encontró el corte de tela que se quiere devolver.");
+            }
+
+            if (detalle.Venta.Estado == "ANULADA")
+            {
+                throw new InvalidOperationException("La venta está anulada, no se pueden registrar devoluciones.");
+            }
+
+            // No se puede devolver más de lo que se vendió
+            var yaDevuelto = await _context.Devoluciones
+                .Where(d => d.IdDetalleVenta == detalle.IdDetalleVenta)
+                .SumAsync(d => d.CantidadMetros);
+
+            var maximo = detalle.CantidadMetros - yaDevuelto;
+            if (devolucion.CantidadMetros > maximo)
+            {
+                throw new InvalidOperationException($"Solo se pueden devolver {maximo} metros de este corte.");
+            }
+
+            devolucion.Monto = Math.Round(devolucion.CantidadMetros * detalle.PrecioUnitario, 2);
             _context.Devoluciones.Add(devolucion);
 
-            var detalle = await _context.DetallesVenta.FindAsync(devolucion.IdDetalleVenta);
-            if (detalle != null && detalle.IdRollo.HasValue)
+            if (detalle.IdRollo.HasValue)
             {
                 var rollo = await _context.Rollos.FindAsync(detalle.IdRollo.Value);
                 if (rollo != null)
@@ -162,5 +220,13 @@ public class VentaRepository : IVentaRepository
             await tx.RollbackAsync();
             throw;
         }
+    }
+
+    // Suma lo que el cliente todavía debe en sus ventas a crédito
+    public async Task<decimal> ObtenerDeudaClienteAsync(int idCliente)
+    {
+        return await _context.Ventas
+            .Where(v => v.IdCliente == idCliente && v.EsCredito && v.Estado == "REGISTRADA")
+            .SumAsync(v => v.SaldoPendiente);
     }
 }

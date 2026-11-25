@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TelasJuanita.Business.DTOs;
 using TelasJuanita.Business.Services;
@@ -5,6 +6,7 @@ using TelasJuanita.Business.Services;
 namespace TelasJuanita.Api.Controllers;
 
 [ApiController]
+[Authorize]
 [Route("api/[controller]")]
 public class TelasController : ControllerBase
 {
@@ -15,6 +17,8 @@ public class TelasController : ControllerBase
         _telaService = telaService;
     }
 
+    // El catálogo es público para que los clientes vean las telas sin iniciar sesión
+    [AllowAnonymous]
     [HttpGet]
     public async Task<IActionResult> Listar([FromQuery] string? estado, [FromQuery] string? buscar)
     {
@@ -22,6 +26,7 @@ public class TelasController : ControllerBase
         return Ok(telas);
     }
 
+    [AllowAnonymous]
     [HttpGet("{id}")]
     public async Task<IActionResult> ObtenerPorId(int id)
     {
@@ -33,6 +38,7 @@ public class TelasController : ControllerBase
         return Ok(tela);
     }
 
+    [Authorize(Roles = "Dueña,Almacen")]
     [HttpPost]
     public async Task<IActionResult> Registrar([FromBody] CrearTelaDto dto)
     {
@@ -50,6 +56,7 @@ public class TelasController : ControllerBase
         return CreatedAtAction(nameof(ObtenerPorId), new { id = tela!.IdTela }, tela);
     }
 
+    [Authorize(Roles = "Dueña,Almacen")]
     [HttpPatch("{id}/estado")]
     public async Task<IActionResult> CambiarEstado(int id, [FromBody] CambiarEstadoRequest request)
     {
@@ -62,13 +69,11 @@ public class TelasController : ControllerBase
         return Ok(new { mensaje = $"Estado de la tela actualizado a '{request.Estado}'" });
     }
 
+    [Authorize(Roles = "Dueña,Almacen")]
     [HttpPost("ajuste")]
     public async Task<IActionResult> AjustarInventario([FromBody] AjustarInventarioDto dto)
     {
-        var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        var idUsuario = Guid.TryParse(userIdClaim, out var guid) ? guid : Guid.Parse("00000000-0000-0000-0000-000000000001");
-
-        var (exito, error) = await _telaService.AjustarInventarioAsync(dto, idUsuario);
+        var (exito, error) = await _telaService.AjustarInventarioAsync(dto, User.ObtenerId());
         if (!exito)
         {
             return BadRequest(new { mensaje = error });

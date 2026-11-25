@@ -9,4 +9,5 @@ public interface IVentaRepository
     Task<List<Venta>> ListarVentasRecientesAsync(int limite = 50);
     Task<bool> AnularVentaAsync(int idVenta, string motivo, Guid idUsuarioAnulacion);
     Task<Devolucion> RegistrarDevolucionAsync(Devolucion devolucion);
+    Task<decimal> ObtenerDeudaClienteAsync(int idCliente);
 }

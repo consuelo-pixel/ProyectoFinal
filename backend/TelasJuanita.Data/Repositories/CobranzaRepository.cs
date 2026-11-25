@@ -38,6 +38,8 @@ public class CobranzaRepository : ICobranzaRepository
             .FirstOrDefaultAsync(v => v.IdVenta == idVenta);
     }
 
+    // OJO: el saldo de la venta lo descuenta solo la base de datos (trigger fn_aplicar_abono),
+    // por eso acá solo se guarda el abono.
     public async Task<Abono> RegistrarAbonoAsync(Abono abono)
     {
         _context.Abonos.Add(abono);
@@ -45,20 +47,12 @@ public class CobranzaRepository : ICobranzaRepository
         return abono;
     }
 
-    public async Task ActualizarSaldoVentaAsync(int idVenta, decimal nuevoSaldo)
-    {
-        var venta = await _context.Ventas.FindAsync(idVenta);
-        if (venta != null)
-        {
-            venta.SaldoPendiente = nuevoSaldo;
-            await _context.SaveChangesAsync();
-        }
-    }
-
     public async Task<List<Abono>> ObtenerHistorialAbonosVentaAsync(int idVenta)
     {
         return await _context.Abonos
             .Include(a => a.Usuario)
+            .Include(a => a.Venta)
+                .ThenInclude(v => v.Cliente)
             .Where(a => a.IdVenta == idVenta)
             .OrderByDescending(a => a.Fecha)
             .ToListAsync();

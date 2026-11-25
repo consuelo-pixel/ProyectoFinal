@@ -1,4 +1,5 @@
 using TelasJuanita.Business.DTOs;
+using TelasJuanita.Data;
 using TelasJuanita.Data.Entities;
 using TelasJuanita.Data.Repositories;
 
@@ -15,7 +16,7 @@ public class CajaService : ICajaService
 
     public async Task<ResumenCajaHoyDto> ObtenerResumenHoyAsync()
     {
-        var hoy = DateOnly.FromDateTime(DateTime.UtcNow);
+        var hoy = HoraBolivia.Hoy();
         var cierreExistente = await _cajaRepo.ObtenerCierreDelDiaAsync(hoy);
 
         if (cierreExistente != null)
@@ -46,25 +47,26 @@ public class CajaService : ICajaService
         };
     }
 
-    public async Task<(bool Exito, string? Error, CierreCajaHistorialDto? Cierre)> RealizarCierreCajaAsync(RegistrarCierreCajaDto dto, Guid idUsuario)
+    public async Task<(bool Exito, string? Error, CierreCajaHistorialDto? Cierre)> RealizarCierreCajaAsync(RegistrarCierreCajaDto dto, Guid idUsuario, string nombreUsuario)
     {
-        var hoy = DateOnly.FromDateTime(DateTime.UtcNow);
+        var hoy = HoraBolivia.Hoy();
         var existente = await _cajaRepo.ObtenerCierreDelDiaAsync(hoy);
         if (existente != null)
         {
             return (false, "El cierre de caja para el día de hoy ya fue registrado anteriormente.", null);
         }
 
-        var total = dto.TotalEfectivo + dto.TotalTransferencia + dto.TotalQr;
+        // Los totales los calculamos nosotros con los pagos reales del día
+        var (efectivo, qr, transferencias, total, _) = await _cajaRepo.CalcularTotalesDiaAsync(hoy);
 
         var entidad = new CierreCaja
         {
             Fecha = hoy,
             FechaHora = DateTime.UtcNow,
             IdUsuario = idUsuario,
-            TotalEfectivo = dto.TotalEfectivo,
-            TotalTransferencia = dto.TotalTransferencia,
-            TotalQr = dto.TotalQr,
+            TotalEfectivo = efectivo,
+            TotalTransferencia = transferencias,
+            TotalQr = qr,
             TotalGeneral = total,
             Observacion = string.IsNullOrWhiteSpace(dto.Observacion) ? "Cierre diario sin novedades" : dto.Observacion.Trim()
         };
@@ -76,7 +78,7 @@ public class CajaService : ICajaService
             IdCierre = creado.IdCierre,
             Fecha = creado.Fecha,
             FechaHora = creado.FechaHora,
-            Usuario = "Usuario Actual",
+            Usuario = nombreUsuario,
             TotalEfectivo = creado.TotalEfectivo,
             TotalTransferencia = creado.TotalTransferencia,
             TotalQr = creado.TotalQr,

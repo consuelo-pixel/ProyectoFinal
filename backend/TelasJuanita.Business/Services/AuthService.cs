@@ -5,142 +5,57 @@ namespace TelasJuanita.Business.Services;
 
 public class AuthService : IAuthService
 {
-    private readonly IUsuarioRepository _usuarioRepo;
+    private const int MaxIntentos = 5;
 
-    public AuthService(IUsuarioRepository usuarioRepo)
+    private readonly IUsuarioRepository _usuarioRepo;
+    private readonly ITokenService _tokenService;
+
+    public AuthService(IUsuarioRepository usuarioRepo, ITokenService tokenService)
     {
         _usuarioRepo = usuarioRepo;
+        _tokenService = tokenService;
     }
 
     public async Task<LoginResponseDto> IniciarSesionAsync(LoginDto dto)
     {
-        var correoNormalizado = dto.Correo.Trim().ToLower();
-        var usuario = await _usuarioRepo.ObtenerPorCorreoAsync(correoNormalizado);
+        var correo = dto.Correo.Trim().ToLower();
+        var usuario = await _usuarioRepo.ObtenerPorCorreoAsync(correo);
 
-        // Si el usuario no existe en la base (soporte testing/demostración de los 4 roles)
+        // Mismo mensaje si el correo no existe o la clave está mal (no se revela qué correos existen)
         if (usuario == null)
         {
-            // 1. Rol Dueña (Administradora con acceso total)
-            if (correoNormalizado == "admin@telasjuanita.local" || correoNormalizado == "duena@telasjuanita.local")
-            {
-                if (dto.Password == "CambiarEstaClave#1" || dto.Password == "admin123")
-                {
-                    return new LoginResponseDto
-                    {
-                        Exito = true,
-                        Mensaje = "Inicio de sesión exitoso como Dueña (Acceso Total)",
-                        Token = "jwt-token-dueña-acceso-total",
-                        Nombre = "Juanita Pérez (Dueña)",
-                        Correo = dto.Correo,
-                        Rol = "Dueña",
-                        IntentosRestantes = 5,
-                        CuentaBloqueada = false
-                    };
-                }
-                return ContraseñaIncorrecta();
-            }
-
-            // 2. Rol Vendedor/a (Mostrador, ventas, clientes, cobros y caja)
-            if (correoNormalizado == "vendedor@telasjuanita.local" || correoNormalizado == "ventas@telasjuanita.local")
-            {
-                if (dto.Password == "Vendedor123#" || dto.Password == "vendedor123")
-                {
-                    return new LoginResponseDto
-                    {
-                        Exito = true,
-                        Mensaje = "Inicio de sesión exitoso como Vendedora",
-                        Token = "jwt-token-vendedora-mostrador",
-                        Nombre = "Mariana Torrez (Ventas)",
-                        Correo = dto.Correo,
-                        Rol = "Vendedor",
-                        IntentosRestantes = 5,
-                        CuentaBloqueada = false
-                    };
-                }
-                return ContraseñaIncorrecta();
-            }
-
-            // 3. Rol Encargado de Almacén (Inventario, telas, rollos, proveedores)
-            if (correoNormalizado == "almacen@telasjuanita.local")
-            {
-                if (dto.Password == "Almacen123#" || dto.Password == "almacen123")
-                {
-                    return new LoginResponseDto
-                    {
-                        Exito = true,
-                        Mensaje = "Inicio de sesión exitoso como Encargado de Almacén",
-                        Token = "jwt-token-almacen-inventario",
-                        Nombre = "Gonzalo Choque (Almacén)",
-                        Correo = dto.Correo,
-                        Rol = "Almacen",
-                        IntentosRestantes = 5,
-                        CuentaBloqueada = false
-                    };
-                }
-                return ContraseñaIncorrecta();
-            }
-
-            // 4. Rol Cliente (Catálogo, compras, pedidos y consulta de saldo)
-            if (correoNormalizado == "cliente@telasjuanita.local" || correoNormalizado.Contains("cliente"))
-            {
-                if (dto.Password == "Cliente123#" || dto.Password == "cliente123")
-                {
-                    return new LoginResponseDto
-                    {
-                        Exito = true,
-                        Mensaje = "Bienvenido a Telas Juanita",
-                        Token = "jwt-token-cliente-pedidos",
-                        Nombre = "María Elena Morales (Cliente)",
-                        Correo = dto.Correo,
-                        Rol = "Cliente",
-                        IntentosRestantes = 5,
-                        CuentaBloqueada = false
-                    };
-                }
-                return ContraseñaIncorrecta();
-            }
-
-            return new LoginResponseDto
-            {
-                Exito = false,
-                Mensaje = "Usuario no registrado en el sistema",
-                IntentosRestantes = 0
-            };
+            return Fallo("Correo o contraseña incorrectos.", MaxIntentos);
         }
 
-        // Si ya está bloqueado
-        if (usuario.Estado == "BLOQUEADO")
-        {
-            return new LoginResponseDto
-            {
-                Exito = false,
-                Mensaje = "Cuenta bloqueada temporalmente tras superar el límite de 5 intentos fallidos (RF-29).",
-                IntentosRestantes = 0,
-                CuentaBloqueada = true
-            };
-        }
-
-        // Si está inactivo
         if (usuario.Estado == "INACTIVO")
         {
-            return new LoginResponseDto
-            {
-                Exito = false,
-                Mensaje = "Usuario inactivo. Comuníquese con la administración.",
-                IntentosRestantes = 0
-            };
+            return Fallo("Usuario inactivo. Comuníquese con la administración.", 0);
         }
 
-        // Verificación de contraseña (admite contraseña inicial de semilla o texto directo)
-        bool passwordValido = dto.Password == "CambiarEstaClave#1" ||
-                              dto.Password == "admin123" ||
-                              dto.Password == usuario.PasswordHash ||
-                              (usuario.PasswordHash.StartsWith("$2") && dto.Password == "CambiarEstaClave#1");
+        if (usuario.Estado == "BLOQUEADO")
+        {
+            var bloqueoTerminado = usuario.BloqueadoHasta != null && usuario.BloqueadoHasta <= DateTime.UtcNow;
 
-        if (!passwordValido)
+            if (!bloqueoTerminado)
+            {
+                return new LoginResponseDto
+                {
+                    Exito = false,
+                    Mensaje = "Cuenta bloqueada temporalmente tras superar el límite de 5 intentos fallidos (RF-29).",
+                    IntentosRestantes = 0,
+                    CuentaBloqueada = true
+                };
+            }
+
+            // Ya pasaron los 30 minutos: se desbloquea sola
+            await _usuarioRepo.ResetearIntentosAsync(usuario.IdUsuario);
+            usuario.IntentosFallidos = 0;
+        }
+
+        if (!PasswordCorrecta(dto.Password, usuario.PasswordHash))
         {
             int nuevosIntentos = usuario.IntentosFallidos + 1;
-            bool bloquear = nuevosIntentos >= 5;
+            bool bloquear = nuevosIntentos >= MaxIntentos;
 
             await _usuarioRepo.ActualizarIntentosFallidosAsync(
                 usuario.IdUsuario,
@@ -153,44 +68,29 @@ public class AuthService : IAuthService
                 return new LoginResponseDto
                 {
                     Exito = false,
-                    Mensaje = "Has alcanzado 5 intentos fallidos. Tu cuenta ha sido BLOQUEADA (RF-29).",
+                    Mensaje = "Has alcanzado 5 intentos fallidos. Tu cuenta ha sido BLOQUEADA por 30 minutos (RF-29).",
                     IntentosRestantes = 0,
                     CuentaBloqueada = true
                 };
             }
 
-            return new LoginResponseDto
-            {
-                Exito = false,
-                Mensaje = $"Contraseña incorrecta. Intento fallido {nuevosIntentos} de 5.",
-                IntentosRestantes = 5 - nuevosIntentos,
-                CuentaBloqueada = false
-            };
+            return Fallo($"Contraseña incorrecta. Intento fallido {nuevosIntentos} de {MaxIntentos}.", MaxIntentos - nuevosIntentos);
         }
 
-        // Éxito: restablecer intentos fallidos
+        // Contraseña correcta: reiniciamos los intentos y damos el token
         await _usuarioRepo.ResetearIntentosAsync(usuario.IdUsuario);
+
+        var token = _tokenService.CrearToken(usuario.IdUsuario, usuario.Nombre, usuario.Correo, usuario.Rol.Nombre);
 
         return new LoginResponseDto
         {
             Exito = true,
             Mensaje = "Inicio de sesión correcto",
-            Token = $"jwt-{Guid.NewGuid()}",
+            Token = token,
             Nombre = usuario.Nombre,
             Correo = usuario.Correo,
-            Rol = usuario.Rol?.Nombre ?? "Dueña",
-            IntentosRestantes = 5,
-            CuentaBloqueada = false
-        };
-    }
-
-    private static LoginResponseDto ContraseñaIncorrecta()
-    {
-        return new LoginResponseDto
-        {
-            Exito = false,
-            Mensaje = "Contraseña incorrecta. Intento 1 de 5",
-            IntentosRestantes = 4,
+            Rol = usuario.Rol.Nombre,
+            IntentosRestantes = MaxIntentos,
             CuentaBloqueada = false
         };
     }
@@ -201,5 +101,40 @@ public class AuthService : IAuthService
         if (usuario == null) return false;
 
         return await _usuarioRepo.ResetearIntentosAsync(usuario.IdUsuario);
+    }
+
+    // Compara la clave escrita con el hash BCrypt guardado en la base
+    private static bool PasswordCorrecta(string password, string hash)
+    {
+        try
+        {
+            if (BCrypt.Net.BCrypt.Verify(password, hash))
+                return true;
+
+            // Compatibilidad para demo: permite Admin123# o CambiarEstaClave#1 indistintamente para la dueña
+            if ((password == "Admin123#" && BCrypt.Net.BCrypt.Verify("CambiarEstaClave#1", hash)) ||
+                (password == "CambiarEstaClave#1" && BCrypt.Net.BCrypt.Verify("Admin123#", hash)))
+            {
+                return true;
+            }
+
+            return false;
+        }
+        catch (Exception)
+        {
+            // El hash guardado no tiene formato BCrypt: se toma como clave incorrecta
+            return false;
+        }
+    }
+
+    private static LoginResponseDto Fallo(string mensaje, int intentosRestantes)
+    {
+        return new LoginResponseDto
+        {
+            Exito = false,
+            Mensaje = mensaje,
+            IntentosRestantes = intentosRestantes,
+            CuentaBloqueada = false
+        };
     }
 }

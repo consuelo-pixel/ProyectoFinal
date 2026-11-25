@@ -120,34 +120,40 @@ public class TelaService : ITelaService
             return (false, "La cantidad de metros debe ser mayor a 0.");
         }
 
+        var tipoOperacion = dto.TipoOperacion.Trim().ToUpper();
+        if (tipoOperacion != "INCREMENTO" && tipoOperacion != "DISMINUCION")
+        {
+            return (false, "El tipo de operación debe ser INCREMENTO o DISMINUCION.");
+        }
+
+        var tela = await _telaRepo.ObtenerPorIdAsync(dto.IdTela);
+        if (tela == null)
+        {
+            return (false, "No se encontró la tela especificada.");
+        }
+
+        var deltaMetros = tipoOperacion == "INCREMENTO" ? dto.CantidadMetros : -dto.CantidadMetros;
+
+        var movimiento = new MovimientoInventario
+        {
+            Fecha = DateTime.UtcNow,
+            Tipo = "AJUSTE",
+            CantidadMetros = dto.CantidadMetros,
+            Motivo = dto.Motivo.Trim(),
+            IdTela = dto.IdTela,
+            IdRollo = dto.IdRollo,
+            IdUsuario = idUsuario
+        };
+
         try
         {
-            var tela = await _telaRepo.ObtenerPorIdAsync(dto.IdTela);
-            if (tela == null)
-            {
-                return (false, "No se encontró la tela especificada.");
-            }
-
-            var esIncremento = dto.TipoOperacion.ToUpper() == "INCREMENTO";
-            var deltaMetros = esIncremento ? dto.CantidadMetros : -dto.CantidadMetros;
-
-            var movimiento = new MovimientoInventario
-            {
-                Fecha = DateTime.UtcNow,
-                Tipo = "AJUSTE",
-                CantidadMetros = dto.CantidadMetros,
-                Motivo = dto.Motivo.Trim(),
-                IdTela = dto.IdTela,
-                IdRollo = dto.IdRollo,
-                IdUsuario = idUsuario
-            };
-
             await _telaRepo.RegistrarAjusteInventarioAsync(movimiento, deltaMetros);
             return (true, null);
         }
-        catch (Exception ex)
+        catch (InvalidOperationException ex)
         {
-            return (false, $"Error al registrar ajuste de inventario: {ex.Message}");
+            // Errores de negocio (por ejemplo, dejar el rollo en negativo)
+            return (false, ex.Message);
         }
     }
 }

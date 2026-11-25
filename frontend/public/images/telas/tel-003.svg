@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" width="100%" height="100%">
+  <defs>
+    <linearGradient id="cottonNavy" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1E293B" />
+      <stop offset="50%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#090D16" />
+    </linearGradient>
+    <pattern id="cottonKnit" width="12" height="12" patternUnits="userSpaceOnUse">
+      <path d="M 0 6 C 3 3, 9 3, 12 6 C 9 9, 3 9, 0 6" stroke="#334155" stroke-width="1" fill="none" opacity="0.6"/>
+    </pattern>
+  </defs>
+  <rect width="600" height="400" fill="url(#cottonNavy)" />
+  <rect width="600" height="400" fill="url(#cottonKnit)" />
+  <path d="M 0 140 Q 200 90 380 160 T 600 130 L 600 400 L 0 400 Z" fill="#0A0F1D" opacity="0.6" />
+  <path d="M 0 280 Q 180 320 360 270 T 600 300 L 600 400 L 0 400 Z" fill="#050810" opacity="0.7" />
+  <g transform="translate(40, 320)">
+    <rect width="250" height="50" rx="12" fill="#0284c7" opacity="0.9"/>
+    <text x="20" y="32" fill="#ffffff" font-family="system-ui, sans-serif" font-weight="bold" font-size="16">TEL-003 • Algodón Pima</text>
+  </g>
+</svg>

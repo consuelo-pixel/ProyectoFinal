@@ -1,4 +1,4 @@
-using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TelasJuanita.Business.DTOs;
 using TelasJuanita.Business.Services;
@@ -6,6 +6,7 @@ using TelasJuanita.Business.Services;
 namespace TelasJuanita.Api.Controllers;
 
 [ApiController]
+[Authorize(Roles = "Dueña,Vendedor")]
 [Route("api/[controller]")]
 public class CobranzasController : ControllerBase
 {
@@ -26,11 +27,7 @@ public class CobranzasController : ControllerBase
     [HttpPost("abono")]
     public async Task<IActionResult> RegistrarAbono([FromBody] RegistrarAbonoDto dto)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var idUsuario = Guid.TryParse(userIdClaim, out var guid) ? guid : Guid.Parse("00000000-0000-0000-0000-000000000001");
-        var nombreUsuario = User.FindFirst(ClaimTypes.Name)?.Value ?? "Cajera / Vendedora";
-
-        var (exito, error, comprobante) = await _cobranzaService.RegistrarAbonoAsync(dto, idUsuario, nombreUsuario);
+        var (exito, error, comprobante) = await _cobranzaService.RegistrarAbonoAsync(dto, User.ObtenerId(), User.ObtenerNombre());
 
         if (!exito)
         {

@@ -10,10 +10,12 @@ export const ReportesPage: React.FC = () => {
   const [resumen, setResumen] = useState<ResumenVentasPeriodo | null>(null);
   const [rotacion, setRotacion] = useState<RotacionTela[]>([]);
   const [cargando, setCargando] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [pestaña, setPestaña] = useState<'ventas' | 'rotacion'>('ventas');
 
   const cargar = async () => {
     setCargando(true);
+    setError(null);
     try {
       const [v, r] = await Promise.all([
         obtenerReporteVentas(),
@@ -21,8 +23,9 @@ export const ReportesPage: React.FC = () => {
       ]);
       setResumen(v);
       setRotacion(r);
-    } catch (err) {
+    } catch (err: any) {
       console.error('Error cargando reportes:', err);
+      setError(err.message || 'No se pudieron cargar los reportes.');
     } finally {
       setCargando(false);
     }
@@ -34,6 +37,12 @@ export const ReportesPage: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+      {error && (
+        <div className="p-4 rounded-xl border bg-rose-50 border-rose-200 text-rose-800 text-sm font-medium">
+          {error}
+        </div>
+      )}
+
       {/* Encabezado */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-5">
         <div>

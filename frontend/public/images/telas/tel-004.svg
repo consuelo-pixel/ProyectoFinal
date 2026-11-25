@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" width="100%" height="100%">
+  <defs>
+    <linearGradient id="poplinBase" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFDF7" />
+      <stop offset="100%" stop-color="#FBF3E4" />
+    </linearGradient>
+    <pattern id="floralPattern" width="100" height="100" patternUnits="userSpaceOnUse">
+      <!-- Flor 1 Rosa -->
+      <circle cx="30" cy="30" r="12" fill="#F472B6" opacity="0.85"/>
+      <circle cx="22" cy="22" r="8" fill="#FB7185" opacity="0.85"/>
+      <circle cx="38" cy="22" r="8" fill="#FB7185" opacity="0.85"/>
+      <circle cx="22" cy="38" r="8" fill="#FB7185" opacity="0.85"/>
+      <circle cx="38" cy="38" r="8" fill="#FB7185" opacity="0.85"/>
+      <circle cx="30" cy="30" r="6" fill="#FBBF24"/>
+
+      <!-- Flor 2 Amarilla -->
+      <circle cx="75" cy="75" r="9" fill="#FDE047" opacity="0.9"/>
+      <circle cx="68" cy="70" r="6" fill="#F59E0B" opacity="0.8"/>
+      <circle cx="82" cy="70" r="6" fill="#F59E0B" opacity="0.8"/>
+      <circle cx="75" cy="83" r="6" fill="#F59E0B" opacity="0.8"/>
+      <circle cx="75" cy="75" r="4" fill="#B45309"/>
+
+      <!-- Hojitas Verdes -->
+      <ellipse cx="48" cy="30" rx="8" ry="4" fill="#34D399" transform="rotate(-30 48 30)"/>
+      <ellipse cx="60" cy="75" rx="7" ry="3.5" fill="#10B981" transform="rotate(40 60 75)"/>
+    </pattern>
+  </defs>
+  <rect width="600" height="400" fill="url(#poplinBase)" />
+  <rect width="600" height="400" fill="url(#floralPattern)" />
+  <path d="M 0 180 Q 200 240 400 190 T 600 220 L 600 400 L 0 400 Z" fill="#F5EFE0" opacity="0.5" />
+  <g transform="translate(40, 320)">
+    <rect width="250" height="50" rx="12" fill="#1e293b" opacity="0.85"/>
+    <text x="20" y="32" fill="#ffffff" font-family="system-ui, sans-serif" font-weight="bold" font-size="16">TEL-004 • Popelina Floral</text>
+  </g>
+</svg>

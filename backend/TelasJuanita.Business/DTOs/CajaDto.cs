@@ -14,17 +14,9 @@ public class ResumenCajaHoyDto
     public string? ObservacionCierre { get; set; }
 }
 
+// Los totales ya no vienen del cliente: los calcula el servidor con los pagos del día
 public class RegistrarCierreCajaDto
 {
-    [Range(0, 1000000)]
-    public decimal TotalEfectivo { get; set; }
-
-    [Range(0, 1000000)]
-    public decimal TotalTransferencia { get; set; }
-
-    [Range(0, 1000000)]
-    public decimal TotalQr { get; set; }
-
     [StringLength(200)]
     public string? Observacion { get; set; }
 }

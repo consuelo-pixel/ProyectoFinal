@@ -1,16 +1,16 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth, RolUsuario } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 
 export const Navbar: React.FC = () => {
   const location = useLocation();
-  const { usuario, cerrarSesion, cambiarRolDemo } = useAuth();
+  const { usuario, cerrarSesion } = useAuth();
 
   const isActive = (path: string) => location.pathname === path;
 
   return (
     <header className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
-      {/* Barra superior de simulación de rol (para demostración rápida de permisos) */}
+      {/* Barra superior que muestra el rol de la sesión actual */}
       <div className="bg-slate-900 text-slate-300 text-xs px-4 sm:px-8 py-1.5 flex flex-wrap items-center justify-between gap-2 border-b border-slate-800">
         <div className="flex items-center gap-2">
           <span className="text-[10px] uppercase font-bold tracking-wider text-slate-400">Rol activo:</span>
@@ -29,24 +29,6 @@ export const Navbar: React.FC = () => {
           ) : (
             <span className="text-slate-400 italic">Sin sesión (Visitante público)</span>
           )}
-        </div>
-
-        {/* Selector de rol para probar cada vista al instante */}
-        <div className="flex items-center gap-1.5 text-[11px]">
-          <span className="text-slate-400 hidden sm:inline">Probar vista como:</span>
-          {(['Dueña', 'Vendedor', 'Almacen', 'Cliente'] as RolUsuario[]).map((r) => (
-            <button
-              key={r}
-              onClick={() => cambiarRolDemo(r)}
-              className={`px-2 py-0.5 rounded transition font-semibold ${
-                usuario?.rol === r
-                  ? 'bg-emerald-500 text-white shadow-sm'
-                  : 'bg-slate-800 text-slate-300 hover:bg-slate-700'
-              }`}
-            >
-              {r}
-            </button>
-          ))}
         </div>
       </div>
 

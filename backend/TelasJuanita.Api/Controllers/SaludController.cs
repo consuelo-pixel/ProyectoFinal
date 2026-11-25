@@ -27,13 +27,12 @@ public class SaludController : ControllerBase
 
             return Ok(resultado);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return StatusCode(StatusCodes.Status500InternalServerError, new
             {
                 estado = "ERROR",
-                mensaje = "Error al conectar con la base de datos",
-                error = ex.Message
+                mensaje = "Error al conectar con la base de datos"
             });
         }
     }

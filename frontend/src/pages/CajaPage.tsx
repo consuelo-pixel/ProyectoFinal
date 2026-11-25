@@ -50,9 +50,6 @@ export const CajaPage: React.FC = () => {
 
     try {
       await realizarCierreCaja({
-        totalEfectivo: resumen.totalEfectivo,
-        totalTransferencia: resumen.totalTransferencia,
-        totalQr: resumen.totalQr,
         observacion: observacion.trim() || undefined
       });
       setMensajeExito('¡Cierre de caja registrado exitosamente!');
@@ -247,7 +244,7 @@ export const CajaPage: React.FC = () => {
                     <td className="px-5 py-3.5 font-extrabold text-emerald-700">Bs. {c.totalGeneral.toFixed(2)}</td>
                     <td className="px-5 py-3.5">
                       <span className="px-2 py-0.5 bg-slate-100 rounded text-slate-700 font-medium text-xs">
-                        {c.cerradoPor}
+                        {c.usuario}
                       </span>
                     </td>
                     <td className="px-5 py-3.5 text-xs text-slate-500 max-w-xs truncate" title={c.observacion}>

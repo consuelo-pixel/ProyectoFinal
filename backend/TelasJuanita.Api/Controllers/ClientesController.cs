@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TelasJuanita.Business.DTOs;
 using TelasJuanita.Business.Services;
@@ -5,6 +6,7 @@ using TelasJuanita.Business.Services;
 namespace TelasJuanita.Api.Controllers;
 
 [ApiController]
+[Authorize(Roles = "Dueña,Vendedor")]
 [Route("api/[controller]")]
 public class ClientesController : ControllerBase
 {

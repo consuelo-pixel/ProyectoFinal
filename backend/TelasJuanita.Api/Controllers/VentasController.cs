@@ -1,4 +1,4 @@
-using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TelasJuanita.Business.DTOs;
 using TelasJuanita.Business.Services;
@@ -6,6 +6,7 @@ using TelasJuanita.Business.Services;
 namespace TelasJuanita.Api.Controllers;
 
 [ApiController]
+[Authorize(Roles = "Dueña,Vendedor")]
 [Route("api/[controller]")]
 public class VentasController : ControllerBase
 {
@@ -19,11 +20,7 @@ public class VentasController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> Registrar([FromBody] RegistrarVentaDto dto)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var idUsuario = Guid.TryParse(userIdClaim, out var guid) ? guid : Guid.Parse("00000000-0000-0000-0000-000000000001");
-        var nombreUsuario = User.FindFirst(ClaimTypes.Name)?.Value ?? "Vendedora";
-
-        var (exito, error, nota) = await _ventaService.RegistrarVentaAsync(dto, idUsuario, nombreUsuario);
+        var (exito, error, nota) = await _ventaService.RegistrarVentaAsync(dto, User.ObtenerId(), User.ObtenerNombre());
 
         if (!exito)
         {
@@ -51,16 +48,12 @@ public class VentasController : ControllerBase
         return Ok(nota);
     }
 
+    // Solo la Dueña (RN-04). El rol sale del token, ya no se acepta por header.
+    [Authorize(Roles = "Dueña")]
     [HttpPost("anular")]
-    public async Task<IActionResult> Anular([FromBody] AnularVentaDto dto, [FromHeader(Name = "X-Rol-Usuario")] string? rolHeader)
+    public async Task<IActionResult> Anular([FromBody] AnularVentaDto dto)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var idUsuario = Guid.TryParse(userIdClaim, out var guid) ? guid : Guid.Parse("00000000-0000-0000-0000-000000000001");
-        
-        // Obtener rol del claim o del header de simulación de rol
-        var rol = User.FindFirst(ClaimTypes.Role)?.Value ?? rolHeader ?? "Dueña";
-
-        var (exito, error) = await _ventaService.AnularVentaAsync(dto, idUsuario, rol);
+        var (exito, error) = await _ventaService.AnularVentaAsync(dto, User.ObtenerId(), User.ObtenerRol());
 
         if (!exito)
         {
@@ -73,10 +66,7 @@ public class VentasController : ControllerBase
     [HttpPost("devolucion")]
     public async Task<IActionResult> Devolucion([FromBody] RegistrarDevolucionDto dto)
     {
-        var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-        var idUsuario = Guid.TryParse(userIdClaim, out var guid) ? guid : Guid.Parse("00000000-0000-0000-0000-000000000001");
-
-        var (exito, error) = await _ventaService.RegistrarDevolucionAsync(dto, idUsuario);
+        var (exito, error) = await _ventaService.RegistrarDevolucionAsync(dto, User.ObtenerId());
 
         if (!exito)
         {

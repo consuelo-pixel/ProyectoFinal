@@ -79,29 +79,42 @@ public class TelaRepository : ITelaRepository
         using var tx = await _context.Database.BeginTransactionAsync();
         try
         {
-            _context.MovimientosInventario.Add(movimiento);
+            Rollo? rollo;
 
             if (movimiento.IdRollo.HasValue)
             {
-                var rollo = await _context.Rollos.FindAsync(movimiento.IdRollo.Value);
-                if (rollo != null)
-                {
-                    rollo.MetrosDisponibles = Math.Max(0, rollo.MetrosDisponibles + deltaMetros);
-                }
+                rollo = await _context.Rollos
+                    .FirstOrDefaultAsync(r => r.IdRollo == movimiento.IdRollo.Value && r.IdTela == movimiento.IdTela);
             }
             else
             {
-                var rollo = await _context.Rollos
+                // Sin rollo indicado se ajusta el más reciente de la tela
+                rollo = await _context.Rollos
                     .Where(r => r.IdTela == movimiento.IdTela)
                     .OrderByDescending(r => r.FechaIngreso)
                     .FirstOrDefaultAsync();
-
-                if (rollo != null)
-                {
-                    rollo.MetrosDisponibles = Math.Max(0, rollo.MetrosDisponibles + deltaMetros);
-                    movimiento.IdRollo = rollo.IdRollo;
-                }
             }
+
+            if (rollo == null)
+            {
+                throw new InvalidOperationException("No se encontró un rollo de esa tela para ajustar.");
+            }
+
+            var nuevoDisponible = rollo.MetrosDisponibles + deltaMetros;
+
+            if (nuevoDisponible < 0)
+            {
+                throw new InvalidOperationException($"El rollo solo tiene {rollo.MetrosDisponibles} metros, no se pueden descontar más.");
+            }
+
+            if (nuevoDisponible > rollo.MetrosIniciales)
+            {
+                throw new InvalidOperationException($"El ajuste supera los metros iniciales del rollo ({rollo.MetrosIniciales} m).");
+            }
+
+            rollo.MetrosDisponibles = nuevoDisponible;
+            movimiento.IdRollo = rollo.IdRollo;
+            _context.MovimientosInventario.Add(movimiento);
 
             await _context.SaveChangesAsync();
             await tx.CommitAsync();

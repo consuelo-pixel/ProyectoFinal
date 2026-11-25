@@ -14,13 +14,13 @@ public class SaludService : ISaludService
 
     public async Task<SaludResponseDto> VerificarSaludAsync()
     {
-        var (conecto, errorDb) = await _saludRepository.ProbarConexionAsync();
+        var (conecto, _) = await _saludRepository.ProbarConexionAsync();
         if (!conecto)
         {
             return new SaludResponseDto
             {
                 Estado = "ERROR",
-                Mensaje = $"No se pudo conectar a PostgreSQL: {errorDb}",
+                Mensaje = "No se pudo conectar a PostgreSQL.",
                 BaseDeDatos = "Desconectada"
             };
         }
@@ -40,12 +40,12 @@ public class SaludService : ISaludService
                 FechaUtc = DateTime.UtcNow
             };
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             return new SaludResponseDto
             {
                 Estado = "ERROR",
-                Mensaje = $"Conectó a la base de datos pero falló al consultar tablas: {ex.Message}",
+                Mensaje = "Conectó a la base de datos pero falló al consultar las tablas (revise que el esquema esté creado y los permisos).",
                 BaseDeDatos = "Conectada (sin tablas o sin permisos)"
             };
         }

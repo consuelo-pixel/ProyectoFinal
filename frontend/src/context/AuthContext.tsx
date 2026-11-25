@@ -16,7 +16,6 @@ interface AuthContextType {
   cargando: boolean;
   iniciarSesion: (correo: string, pass: string) => Promise<LoginResponse>;
   cerrarSesion: () => void;
-  cambiarRolDemo: (rol: RolUsuario) => void;
   tienePermiso: (rolesPermitidos: RolUsuario[]) => boolean;
 }
 
@@ -32,7 +31,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUsuario({
         nombre: guardado.nombre || 'Usuario',
         correo: guardado.correo || '',
-        rol: (guardado.rol as RolUsuario) || 'Dueña',
+        rol: (guardado.rol as RolUsuario) || 'Cliente',
         token: guardado.token
       });
     }
@@ -45,7 +44,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const u: UsuarioAutenticado = {
         nombre: res.nombre || 'Usuario',
         correo: res.correo || correo,
-        rol: (res.rol as RolUsuario) || 'Dueña',
+        rol: (res.rol as RolUsuario) || 'Cliente',
         token: res.token
       };
       setUsuario(u);
@@ -57,26 +56,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const cerrarSesion = () => {
     logoutService();
     setUsuario(null);
-  };
-
-  const cambiarRolDemo = (nuevoRol: RolUsuario) => {
-    const u: UsuarioAutenticado = {
-      nombre: nuevoRol === 'Dueña' ? 'Juanita Pérez (Dueña)'
-            : nuevoRol === 'Vendedor' ? 'Mariana Torrez (Ventas)'
-            : nuevoRol === 'Almacen' ? 'Gonzalo Choque (Almacén)'
-            : 'María Elena Morales (Cliente)',
-      correo: `${nuevoRol.toLowerCase()}@telasjuanita.local`,
-      rol: nuevoRol,
-      token: `demo-token-${nuevoRol.toLowerCase()}`
-    };
-    setUsuario(u);
-    localStorage.setItem('usuario_telas_juanita', JSON.stringify({
-      exito: true,
-      token: u.token,
-      nombre: u.nombre,
-      correo: u.correo,
-      rol: u.rol
-    }));
   };
 
   const tienePermiso = (rolesPermitidos: RolUsuario[]): boolean => {
@@ -93,7 +72,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         cargando,
         iniciarSesion,
         cerrarSesion,
-        cambiarRolDemo,
         tienePermiso
       }}
     >

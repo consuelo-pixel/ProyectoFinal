@@ -37,7 +37,8 @@ export const LoginPage: React.FC = () => {
 
   return (
     <div className="min-h-[calc(100vh-12rem)] flex flex-col items-center justify-center py-12 px-4 sm:px-6 lg:px-8 space-y-6">
-      {/* Botones de prueba de roles para defensa académica */}
+      {/* Botones de prueba de roles: solo se ven al correr con "npm run dev" */}
+      {import.meta.env.DEV && (
       <div className="bg-slate-900 text-white p-4 rounded-2xl max-w-md w-full text-xs space-y-2.5 shadow-lg border border-slate-800">
         <p className="font-bold text-slate-300 uppercase tracking-wider text-[10px]">
           🔑 Acceso Rápido por Rol para Demostración:
@@ -45,7 +46,7 @@ export const LoginPage: React.FC = () => {
         <div className="grid grid-cols-2 gap-2 text-[11px]">
           <button
             type="button"
-            onClick={() => seleccionarUsuarioRapido('admin@telasjuanita.local', 'CambiarEstaClave#1')}
+            onClick={() => seleccionarUsuarioRapido('admin@telasjuanita.local', 'Admin123#')}
             className="p-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-left border border-slate-700 transition"
           >
             <strong className="block text-amber-400">👑 Dueña (Total)</strong>
@@ -80,6 +81,7 @@ export const LoginPage: React.FC = () => {
           </button>
         </div>
       </div>
+      )}
 
       <div className="max-w-md w-full bg-white p-8 sm:p-10 rounded-3xl shadow-xl border border-slate-100 space-y-6">
         <div className="text-center">

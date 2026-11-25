@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 600" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgHero" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#064E3B" />
+      <stop offset="50%" stop-color="#047857" />
+      <stop offset="100%" stop-color="#0F766E" />
+    </linearGradient>
+    <linearGradient id="goldAccent" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#F59E0B" />
+      <stop offset="100%" stop-color="#FBBF24" />
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="600" fill="url(#bgHero)" />
+
+  <!-- Rollos de telas estilizados -->
+  <g opacity="0.25">
+    <ellipse cx="950" cy="180" rx="40" ry="120" fill="#F43F5E" transform="rotate(-15 950 180)"/>
+    <rect x="940" y="70" width="220" height="230" rx="10" fill="#E11D48" transform="rotate(-15 940 70)"/>
+
+    <ellipse cx="880" cy="280" rx="38" ry="115" fill="#38BDF8" transform="rotate(-25 880 280)"/>
+    <rect x="870" y="175" width="240" height="220" rx="10" fill="#0284C7" transform="rotate(-25 870 175)"/>
+
+    <ellipse cx="800" cy="390" rx="42" ry="125" fill="#FBBF24" transform="rotate(-30 800 390)"/>
+    <rect x="790" y="275" width="250" height="235" rx="10" fill="#D97706" transform="rotate(-30 790 275)"/>
+  </g>
+
+  <!-- Decoración Geométrica -->
+  <circle cx="1100" cy="100" r="180" fill="#ffffff" opacity="0.05" />
+  <circle cx="100" cy="500" r="240" fill="#ffffff" opacity="0.04" />
+
+  <!-- Texto Principal -->
+  <g transform="translate(100, 220)">
+    <rect width="210" height="36" rx="8" fill="url(#goldAccent)"/>
+    <text x="14" y="24" fill="#1E293B" font-family="system-ui, sans-serif" font-weight="900" font-size="14" letter-spacing="2">TARIJA • BOLIVIA</text>
+
+    <text x="0" y="100" fill="#FFFFFF" font-family="system-ui, sans-serif" font-weight="900" font-size="64" letter-spacing="-1">Telas Juanita</text>
+    <text x="0" y="150" fill="#A7F3D0" font-family="system-ui, sans-serif" font-weight="600" font-size="24">Venta de Telas por Metro, Rollo y Corte Confección</text>
+
+    <text x="0" y="200" fill="#D1FAE5" font-family="system-ui, sans-serif" font-size="16" opacity="0.9">
+      Lino • Seda • Algodón • Popelina • Confección al por mayor con 10% de descuento
+    </text>
+  </g>
+</svg>

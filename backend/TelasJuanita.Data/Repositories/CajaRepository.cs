@@ -37,16 +37,16 @@ public class CajaRepository : ICajaRepository
 
     public async Task<(decimal Efectivo, decimal Qr, decimal Transferencia, decimal Total, int Cantidad)> CalcularTotalesDiaAsync(DateOnly fecha)
     {
-        // Totales de pagos directos del día
-        var fechaInicio = fecha.ToDateTime(TimeOnly.MinValue, DateTimeKind.Utc);
-        var fechaFin = fecha.ToDateTime(TimeOnly.MaxValue, DateTimeKind.Utc);
+        // El día de la tienda es el día de Bolivia (UTC-4), no el día UTC
+        var (inicio, fin) = HoraBolivia.RangoUtc(fecha);
 
+        // Solo cuentan los pagos y abonos de ventas que NO fueron anuladas
         var pagos = await _context.Pagos
-            .Where(p => p.Fecha >= fechaInicio && p.Fecha <= fechaFin)
+            .Where(p => p.Fecha >= inicio && p.Fecha < fin && p.Venta.Estado == "REGISTRADA")
             .ToListAsync();
 
         var abonos = await _context.Abonos
-            .Where(a => a.Fecha >= fechaInicio && a.Fecha <= fechaFin)
+            .Where(a => a.Fecha >= inicio && a.Fecha < fin && a.Venta.Estado == "REGISTRADA")
             .ToListAsync();
 
         decimal efectivo = pagos.Where(p => p.MetodoPago == "EFECTIVO").Sum(p => p.Monto) +
@@ -59,7 +59,10 @@ public class CajaRepository : ICajaRepository
                         abonos.Where(a => a.MetodoPago == "TRANSFERENCIA").Sum(a => a.Monto);
 
         decimal total = efectivo + qr + trans;
-        int cantidad = pagos.Count + abonos.Count;
+
+        // Cantidad de ventas registradas en el día
+        int cantidad = await _context.Ventas
+            .CountAsync(v => v.Fecha >= inicio && v.Fecha < fin && v.Estado == "REGISTRADA");
 
         return (efectivo, qr, trans, total, cantidad);
     }

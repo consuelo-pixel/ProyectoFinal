@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TelasJuanita.Business.DTOs;
 using TelasJuanita.Business.Services;
@@ -15,14 +16,11 @@ public class AuthController : ControllerBase
         _authService = authService;
     }
 
+    // El login es público: es la única forma de conseguir el token
+    [AllowAnonymous]
     [HttpPost("login")]
     public async Task<IActionResult> Login([FromBody] LoginDto dto)
     {
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
-
         var resultado = await _authService.IniciarSesionAsync(dto);
 
         if (!resultado.Exito)
@@ -37,6 +35,8 @@ public class AuthController : ControllerBase
         return Ok(resultado);
     }
 
+    // Solo la Dueña puede desbloquear cuentas
+    [Authorize(Roles = "Dueña")]
     [HttpPost("desbloquear")]
     public async Task<IActionResult> Desbloquear([FromQuery] string correo)
     {

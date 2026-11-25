@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitcdest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 // Fase 3 de la guía: se reemplaza la dependencia externa (la API) por un mock
 vi.mock('./api', () => ({
